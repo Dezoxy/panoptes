@@ -46,6 +46,34 @@ jobs:
           SKIP: no-commit-to-branch
         run: pre-commit run --all-files --show-diff-on-failure
 
+  python:
+    name: python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+
+      - name: Install Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Lint with ruff
+        run: uv run ruff check .
+
+      - name: Check formatting with ruff
+        run: uv run ruff format --check .
+
+      - name: Type check with mypy
+        run: uv run mypy
+
+      - name: Test with pytest
+        run: uv run pytest --cov=panoptes_platform --cov-report=term-missing
+
   gitleaks:
     name: gitleaks
     runs-on: ubuntu-latest
