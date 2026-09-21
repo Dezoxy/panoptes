@@ -74,6 +74,8 @@ repos:
     rev: v0.23.3
     hooks:
       - id: markdownlint-cli2
+        # Imported agent skills and rules are third-party material, not authored here.
+        exclude: '^(\.claude|\.agents)/'
 
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.38.0
