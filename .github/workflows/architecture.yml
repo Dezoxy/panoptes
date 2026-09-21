@@ -1,0 +1,79 @@
+---
+name: architecture
+
+# The architecture model is code: a workspace that does not parse is a broken
+# build, not a documentation problem. This gate runs the same two commands an
+# author runs locally (docs/architecture/README.md), against the same pinned
+# image, so the parser here is the parser there.
+#
+# Exports are uploaded as an artifact and never committed;
+# docs/architecture/generated/ is gitignored.
+
+on:
+  pull_request:
+    paths:
+      - "docs/architecture/**"
+      - ".github/workflows/architecture.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/architecture/**"
+      - ".github/workflows/architecture.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Pinned deliberately; bumps arrive as their own pull request. Keep this
+  # identical to the tag quoted in docs/architecture/README.md.
+  STRUCTURIZR_IMAGE: structurizr/cli:2025.11.09
+
+jobs:
+  workspace:
+    name: workspace
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      # Fails with a file and line number when the DSL does not parse.
+      - name: Validate the workspace
+        run: |
+          docker run --rm -v "${GITHUB_WORKSPACE}/docs/architecture:/w:ro" \
+            "${STRUCTURIZR_IMAGE}" validate -workspace /w/workspace.dsl
+
+      # inspect exits non-zero on any finding, including ones the workspace
+      # marks IGNORE, so the ERROR lines are what the gate reads.
+      - name: Inspect the model
+        run: |
+          out="$(docker run --rm -v "${GITHUB_WORKSPACE}/docs/architecture:/w:ro" \
+            "${STRUCTURIZR_IMAGE}" inspect -workspace /w/workspace.dsl 2>&1)" || true
+          printf '%s\n' "${out}"
+          if printf '%s\n' "${out}" | grep -q '^ERROR'; then
+            echo "::error::structurizr inspect reported errors in the model" >&2
+            exit 1
+          fi
+
+      # The container writes as root, so the output directory is created world
+      # writable before the mount.
+      - name: Export every view
+        run: |
+          mkdir -p docs/architecture/generated
+          chmod 777 docs/architecture/generated
+          docker run --rm \
+            -v "${GITHUB_WORKSPACE}/docs/architecture:/w:ro" \
+            -v "${GITHUB_WORKSPACE}/docs/architecture/generated:/out" \
+            "${STRUCTURIZR_IMAGE}" export -workspace /w/workspace.dsl \
+            -format plantuml -output /out
+          ls -la docs/architecture/generated
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: architecture-views
+          path: docs/architecture/generated/
+          if-no-files-found: error
+          retention-days: 14
