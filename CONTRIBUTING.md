@@ -60,7 +60,7 @@ are unsure, open the ADR — a rejected ADR is cheaper than an undocumented boun
 Every workload or service document carries these sections:
 
 - **Owner** - the function accountable for it, matching `CODEOWNERS`.
-- **Status** - proposed, active, deprecated, or retired.
+- **Status** - Draft, Active, Deprecated, or Planned (see `docs/method/documentation-conventions.md`).
 - **Last reviewed** - an ISO date. A document nobody has reviewed in a year is stale by
   definition.
 - **Out of scope** - what the document deliberately does not cover, so readers stop looking.
