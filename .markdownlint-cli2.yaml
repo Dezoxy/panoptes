@@ -1,0 +1,26 @@
+---
+config:
+  # Line length is not enforced; prose wraps where it reads well.
+  MD013: false
+  # Inline HTML is allowed only for table markup that Markdown cannot express.
+  MD033:
+    allowed_elements:
+      - table
+      - thead
+      - tbody
+      - tr
+      - th
+      - td
+      - br
+  # Repeated headings are fine under different parents (e.g. "Owner" per section).
+  MD024:
+    siblings_only: true
+
+# No "globs" key: pre-commit passes the file list. These ignores apply when
+# markdownlint-cli2 is invoked directly with a glob.
+ignores:
+  - ".context/**"
+  - "docs/architecture/generated/**"
+  - "evidence/**"
+  - "node_modules/**"
+  - ".venv/**"
