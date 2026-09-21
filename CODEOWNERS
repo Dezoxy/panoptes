@@ -1,0 +1,28 @@
+# Code ownership for the Panoptes repository.
+#
+# Ownership is declared per path. GitHub matches the last rule that applies to a
+# changed file and requests a review from that owner automatically when a pull
+# request touches it. A rule here is a review requirement, not a permission grant.
+#
+# Panoptes is currently maintained by one person, so the catch-all below owns
+# everything. The path-scoped rules are commented out until the owning function
+# has a GitHub team to map onto; they record the intended ownership model so the
+# split is visible before it is enforceable.
+
+* @toomhorvath
+
+# Platform surfaces
+# /gateway/          # AI Platform - model gateway config, routing, quotas
+# /telemetry/        # AI Platform - OpenTelemetry collectors, pipelines, dashboards
+# /automation/       # AI Platform - operational tooling and scheduled jobs
+
+# Control surfaces
+# /iac/              # Security - Terraform modules and landing-zone definitions
+# /policies/         # Security - OPA/Rego admission and usage policies
+# /evidence/         # Security - control evidence collected for audit
+
+# Governance and operations
+# /docs/copilot/     # AI Platform - assistant rollout and usage guidance
+# /docs/finops/      # FinOps - cost allocation, showback, budget guardrails
+# /docs/vendors/     # FinOps - provider contracts, commitments, exit criteria
+# /runbooks/         # Service Management - on-call procedures and incident response
