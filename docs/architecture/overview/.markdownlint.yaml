@@ -1,0 +1,23 @@
+---
+# Directory-scoped lint rules for the documents Structurizr imports with !docs.
+#
+# markdownlint-cli2 replaces the repository configuration with the nearest one
+# rather than merging them, so the three repository-wide rules from
+# /.markdownlint-cli2.yaml are repeated here. Change one there, change it here.
+MD013: false
+MD033:
+  allowed_elements:
+    - table
+    - thead
+    - tbody
+    - tr
+    - th
+    - td
+    - br
+MD024:
+  siblings_only: true
+
+# Local to this directory. Structurizr hides a level-1 heading, so a document
+# imported with !docs starts its title at "##" or the title does not render at
+# all. Every other document in the repository still has to start with an "#".
+MD041: false
