@@ -1,7 +1,7 @@
 # Panoptes (Greek: all-seeing) — the shared AI platform for Northgate Asset Management
 
 - **Owner** — AI Platform
-- **Status** — Scaffolding
+- **Status** — Draft
 - **Last reviewed** — 2026-09-21
 - **Out of scope** — model training and fine-tuning; data science tooling; end-user
   application development; Microsoft 365 tenant operation outside the Copilot surfaces
