@@ -16,3 +16,4 @@ surface may change without a major version bump.
 - Control gates: pre-commit hook suite (formatting, linting, type checking, Terraform
   static analysis, secret scanning, commit-message validation) and the CI workflow that
   runs it on every pull request and push to `main`.
+- README with scope, service catalogue and status legend.
