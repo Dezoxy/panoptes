@@ -17,3 +17,11 @@ surface may change without a major version bump.
   static analysis, secret scanning, commit-message validation) and the CI workflow that
   runs it on every pull request and push to `main`.
 - README with scope, service catalogue and status legend.
+- Method docs: ADR template with mandatory rejected alternatives, C4 conventions,
+  three-tier four-axis risk rubric, RFC and review process, documentation conventions.
+- ADR-0001 to ADR-0004: decision records, hybrid topology and placement, LiteLLM model
+  gateway, CI on GitHub Actions.
+- C4 model in Structurizr DSL with a CI workflow that validates, inspects and exports it.
+- Directory skeleton with per-directory scope, owning function and delivery phase.
+- `panoptes_platform` package and `panoptes` CLI skeleton (uv, typer, mypy strict).
+- Agent instructions, engineering rules and architecture authoring skills.
