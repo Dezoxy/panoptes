@@ -1,0 +1,105 @@
+---
+# Control gates that run before a commit lands and again in CI.
+# Revisions are pinned deliberately; bumps arrive as their own pull request.
+
+default_stages: [pre-commit]
+default_install_hook_types: [pre-commit, commit-msg]
+
+# Generated diagram output and collected control evidence are not authored here.
+exclude: '^(docs/architecture/generated/|evidence/)'
+
+ci:
+  autofix_prs: false
+  autoupdate_schedule: weekly
+  autoupdate_commit_msg: "chore(ci): bump pre-commit hook revisions"
+  # pre-commit.ci has no Terraform toolchain; these run in the repository's own CI.
+  skip:
+    - terraform_fmt
+    - terraform_validate
+    - terraform_tflint
+    - terraform_trivy
+    - terraform_checkov
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-json
+      - id: check-toml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=512]
+      - id: detect-private-key
+      - id: no-commit-to-branch
+        args: [--branch, main]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.8
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.3.1
+    hooks:
+      - id: mypy
+        args: [--strict, --ignore-missing-imports]
+
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.109.1
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_validate
+      - id: terraform_tflint
+        args:
+          - --args=--config=__GIT_WORKING_DIR__/.tflint.hcl
+      # terraform_tfsec is deprecated upstream in favour of terraform_trivy.
+      - id: terraform_trivy
+        args:
+          - --args=--severity=HIGH,CRITICAL
+          - --args=--exit-code=1
+      - id: terraform_checkov
+        args:
+          - --args=--quiet
+          - --args=--compact
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.23.3
+    hooks:
+      - id: markdownlint-cli2
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        args: [--strict]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args:
+          - --scopes
+          - gateway,iac,policies,telemetry,automation,docs,copilot,finops,vendors,runbooks,ci,chore
+          - feat
+          - fix
+          - docs
+          - refactor
+          - perf
+          - test
+          - build
+          - ci
+          - chore
+          - revert

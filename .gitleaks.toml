@@ -1,0 +1,14 @@
+# Extends the bundled gitleaks rule set. Add allowlist entries only for paths that
+# cannot contain a real credential by construction.
+title = "panoptes"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Private working context is never tracked, and example files carry placeholders only."
+paths = [
+  '''^\.context/''',
+  '''\.example$''',
+  '''\.example\.[^/]+$''',
+]
