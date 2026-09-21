@@ -21,14 +21,14 @@ deploymentEnvironment "Platform" {
         softwareSystemInstance zeroTrustProxy
     }
 
-    deploymentNode "Azure subscription (West Europe)" "sub-panoptes-prod. EU region only; no model data leaves the EU." "Microsoft Azure" "Azure" {
+    deploymentNode "Azure subscription (Sweden Central)" "sub-panoptes-prod. Sweden Central primary, West Europe secondary (ADR-0002); no model data leaves the EU." "Microsoft Azure" "Azure" {
 
         deploymentNode "Identity plane" "Northgate workforce tenant. Not a per-subscription resource; drawn here because it is the Azure-side identity boundary." "Microsoft Entra ID" {
             softwareSystemInstance entraId
             containerInstance panoptes.entitlements
         }
 
-        foundry = deploymentNode "Azure AI Foundry" "Hosted model deployments, West Europe only." "Azure AI Foundry" {
+        foundry = deploymentNode "Azure AI Foundry" "Hosted model deployments. Sweden Central primary; West Europe secondary." "Azure AI Foundry" {
             softwareSystemInstance aiFoundry
         }
 
@@ -74,7 +74,7 @@ deploymentEnvironment "Platform" {
                 containerInstance panoptes.docsSite
             }
 
-            deploymentNode "model-runtime" "GPU node pool. Serves the data classes that may not leave the estate." "Kubernetes Deployment" {
+            deploymentNode "model-runtime" "CPU-only node (Ollama). Serves the data classes that may not leave the estate; vLLM on GPU is the documented production alternative (ADR-0002)." "Kubernetes Deployment" {
                 softwareSystemInstance selfHostedRuntime
             }
         }
