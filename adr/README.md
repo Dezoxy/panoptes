@@ -57,9 +57,10 @@ enforce it once that directory lands; until then it is enforced in review.
 
 | Number | Title | Status | Date |
 | --- | --- | --- | --- |
-
-No ADRs yet. The first ones are expected to cover gateway placement, the provider set, and
-the trust boundary between the on-prem cluster and the Azure subscription.
+| 0001 | [Record architecture decisions as ADRs in this repository](0001-record-architecture-decisions.md) | Accepted | 2026-09-21 |
+| 0002 | [Run a hybrid topology with the control plane in Azure and the gateway on-prem](0002-hybrid-topology-and-placement.md) | Accepted | 2026-09-21 |
+| 0003 | [Run the model gateway on LiteLLM, configured as code](0003-model-gateway-litellm.md) | Accepted | 2026-09-21 |
+| 0004 | [Run CI/CD on GitHub Actions, with portable pipelines](0004-ci-on-github-actions.md) | Accepted | 2026-09-21 |
 
 ## A note on the Structurizr importer
 
