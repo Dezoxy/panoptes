@@ -137,6 +137,33 @@ echo >&2
 
 run az account set --subscription "$SUBSCRIPTION_ID"
 
+# A new subscription has almost no resource providers registered. Creating a storage
+# account before Microsoft.Storage is registered fails with a misleading
+# "SubscriptionNotFound". Register what this script and the Phase 1 module need, then
+# wait for Storage, the only one this script depends on itself.
+providers=(
+  Microsoft.Storage
+  Microsoft.App
+  Microsoft.KeyVault
+  Microsoft.CognitiveServices
+  Microsoft.OperationalInsights
+  Microsoft.Insights
+  Microsoft.Monitor
+  Microsoft.PolicyInsights
+)
+for ns in "${providers[@]}"; do
+  run az provider register --namespace "$ns" --only-show-errors
+done
+if [[ "$DRY_RUN" != "true" ]]; then
+  for _ in $(seq 1 30); do
+    state="$(az provider show --namespace Microsoft.Storage --query registrationState -o tsv)"
+    [[ "$state" == "Registered" ]] && break
+    echo "Waiting for Microsoft.Storage registration (${state})..." >&2
+    sleep 5
+  done
+  [[ "$state" == "Registered" ]] || { echo "Microsoft.Storage did not register in time" >&2; exit 1; }
+fi
+
 run az group create \
   --name "$RESOURCE_GROUP" \
   --location "$LOCATION" \
