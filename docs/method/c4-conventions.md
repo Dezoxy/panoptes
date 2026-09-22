@@ -2,7 +2,7 @@
 
 - **Owner** — AI Platform
 - **Status** — Active
-- **Last reviewed** — 2026-09-21
+- **Last reviewed** — 2026-09-22
 - **Out of scope** — the model itself, which lives in `docs/architecture/`; sequence and
   dynamic views, which are optional and unregulated here; UML, ArchiMate and any other
   notation. This document fixes how we model, not what the model says.
@@ -58,6 +58,15 @@ layer visible.
 Groups are declared in the container view for logical grouping and in the deployment view
 for physical grouping. The two groupings do not have to agree, and usually will not —
 that disagreement is the interesting part of the architecture.
+
+## Deployment relationships
+
+In the deployment model a relationship attaches to a container instance, a software system
+instance or an infrastructure node, never to a deployment node. A deployment node renders as a
+boundary, not as a laid-out element: the DSL parser and `structurizr inspect` accept the edge,
+but the browser's automatic layout fails on the whole view with a `rank` error and every
+boundary collapses onto one corner. Point the edge at the instance inside the node instead,
+using its hierarchical identifier.
 
 ## Trust boundaries
 
