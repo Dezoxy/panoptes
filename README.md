@@ -138,5 +138,5 @@ Directories are added as their phase lands. A missing directory means unbuilt, n
 - CLI: `panoptes`
 - Components: `panoptes-gateway`, `panoptes-meter`, `panoptes-policies`
 
-The repository lives at `github.com/toomhorvath/panoptes`. There is no GitHub organisation
+The repository lives at `github.com/Dezoxy/panoptes`. There is no GitHub organisation
 behind it; ownership is one person, as `CODEOWNERS` records.
