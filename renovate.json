@@ -1,0 +1,101 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Dependency updates for Panoptes (ADR-0006). One pull request at a time, weekly, nothing automerges.",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "timezone": "Europe/Budapest",
+  "schedule": [
+    "before 7am on monday"
+  ],
+  "prConcurrentLimit": 1,
+  "dependencyDashboard": true,
+  "automerge": false,
+  "labels": [
+    "dependencies"
+  ],
+  "semanticCommits": "enabled",
+  "semanticCommitType": "chore",
+  "semanticCommitScope": null,
+  "pre-commit": {
+    "enabled": true
+  },
+  "customManagers": [
+    {
+      "description": "Container image pins held as string defaults in Terraform variables. The panoptes-gateway image also matches and is disabled in packageRules: it is this repository's own release.",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^iac\\/azure\\/variables\\.tf$/"
+      ],
+      "matchStrings": [
+        "default\\s*=\\s*\"(?<depName>[a-z0-9][a-z0-9._-]*(?:\\/[a-z0-9._-]+)*):(?<currentValue>[A-Za-z0-9_][A-Za-z0-9_.-]*)(?:@(?<currentDigest>sha256:[a-f0-9]+))?\""
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Commit scope for GitHub Actions and pre-commit hook revisions.",
+      "matchManagers": [
+        "github-actions",
+        "pre-commit"
+      ],
+      "semanticCommitScope": "ci"
+    },
+    {
+      "description": "Commit scope for Terraform providers, the tflint ruleset and image pins in Terraform variables.",
+      "matchManagers": [
+        "terraform",
+        "tflint-plugin",
+        "custom.regex"
+      ],
+      "semanticCommitScope": "iac"
+    },
+    {
+      "description": "Commit scope for the gateway image base and the exit-path Compose stack.",
+      "matchManagers": [
+        "dockerfile",
+        "docker-compose"
+      ],
+      "semanticCommitScope": "gateway"
+    },
+    {
+      "description": "Group non-major GitHub Actions updates into one pull request.",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest"
+      ],
+      "groupName": "github-actions non-major"
+    },
+    {
+      "description": "A Terraform provider major can change resource schemas: raise it only when approved on the dashboard, and flag it for a read of terraform plan.",
+      "matchManagers": [
+        "terraform"
+      ],
+      "matchDepTypes": [
+        "provider",
+        "required_provider"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "dependencyDashboardApproval": true,
+      "addLabels": [
+        "needs-plan-review"
+      ]
+    },
+    {
+      "description": "panoptes-gateway is this repository's own image, built by gateway-image.yml and pinned by hand in iac/azure/variables.tf.",
+      "matchDepNames": [
+        "crpanopteslabswc.azurecr.io/panoptes-gateway"
+      ],
+      "enabled": false
+    }
+  ]
+}
