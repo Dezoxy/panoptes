@@ -29,7 +29,7 @@ deploymentEnvironment "Platform" {
         }
 
         foundry = deploymentNode "Azure AI Foundry" "Hosted model deployments. Sweden Central primary; West Europe secondary." "Azure AI Foundry" {
-            softwareSystemInstance aiFoundry
+            foundryInstance = softwareSystemInstance aiFoundry
         }
 
         deploymentNode "kv-panoptes-weu" "RBAC mode, private endpoint, purge protection on." "Azure Key Vault" {
@@ -40,7 +40,7 @@ deploymentEnvironment "Platform" {
         // the design was written down, not that the control is in force.
         apim = infrastructureNode "APIM AI Gateway" "Documented alternative to the self-hosted gateway, kept as a placement option. Not deployed." "Azure API Management" "documented"
 
-        apim -> foundry "Would front hosted model deployments, if the gateway moved to Azure" "HTTPS/JSON, managed identity" "documented"
+        apim -> foundry.foundryInstance "Would front hosted model deployments, if the gateway moved to Azure" "HTTPS/JSON, managed identity" "documented"
     }
 
     deploymentNode "On-prem Kubernetes" "The estate Panoptes runs on. Admin surfaces are reachable only through the zero-trust proxy." "Kubernetes" {
