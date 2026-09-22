@@ -19,6 +19,9 @@ resource "azuread_service_principal" "github_actions" {
 }
 
 resource "azuread_application_federated_identity_credential" "github_main" {
+  # checkov:skip=CKV_AZURE_249: the rule expects repo:<owner>/<repo>:ref:... without IDs;
+  # GitHub now embeds owner and repository IDs in the subject. The trust is still pinned
+  # to exactly one repository and the main ref, which is what the rule enforces.
   application_id = azuread_application.github_actions.id
   display_name   = "github-main"
   description    = "GitHub Actions: pushes to main on Dezoxy/panoptes (builds and pushes the gateway image)."
