@@ -2,7 +2,7 @@
 
 - **Owner** — AI Platform
 - **Status** — Active
-- **Last reviewed** — 2026-09-21
+- **Last reviewed** — 2026-09-22
 - **Out of scope** — the template and the field-by-field guidance, which live in
   `../docs/method/adr-template.md`; the threshold for needing an ADR at all, which is in
   `../CONTRIBUTING.md` and `../docs/method/rfc-and-review.md`; the architecture the
@@ -61,6 +61,7 @@ enforce it once that directory lands; until then it is enforced in review.
 | 0002 | [Run a hybrid topology with the control plane in Azure and the gateway on-prem](0002-hybrid-topology-and-placement.md) | Accepted | 2026-09-21 |
 | 0003 | [Run the model gateway on LiteLLM, configured as code](0003-model-gateway-litellm.md) | Accepted | 2026-09-21 |
 | 0004 | [Run CI/CD on GitHub Actions, with portable pipelines](0004-ci-on-github-actions.md) | Accepted | 2026-09-21 |
+| 0005 | [Run the lab tier on Azure Container Apps](0005-lab-tier-on-azure.md) | Accepted | 2026-09-22 |
 
 ## A note on the Structurizr importer
 

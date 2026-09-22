@@ -2,7 +2,7 @@
 
 - **Owner** — AI Platform
 - **Status** — Draft
-- **Last reviewed** — 2026-09-21
+- **Last reviewed** — 2026-09-22
 - **Out of scope** — model internals and evaluation; the Microsoft 365 tenant
   itself; consumer workload design; Terraform and cluster platform detail, which
   belong in `iac/`. Decisions live in `adr/`, not here: this model records what
@@ -22,7 +22,7 @@ each state means.
 | [model/systems.dsl](model/systems.dsl) | Software systems outside Panoptes: providers, identity, the Copilot estate. |
 | [model/containers.dsl](model/containers.dsl) | Panoptes and its containers, grouped by layer. |
 | [model/relationships.dsl](model/relationships.dsl) | Every relationship, in call order, each naming its protocol and identity. |
-| [model/deployment.dsl](model/deployment.dsl) | Where each container runs across Azure, the on-prem cluster and the provider APIs. |
+| [model/deployment.dsl](model/deployment.dsl) | Where each container runs across Azure, the documented on-prem exit environment and the provider APIs. |
 | [model/views.dsl](model/views.dsl) | The four views. |
 | [model/styles.dsl](model/styles.dsl) | This repository's layer and group colours. |
 | [model/styles-shared.dsl](model/styles-shared.dsl) | Shared palette and tag meanings. Copied unchanged from `architecture-base`; fix it there, then copy it back. |
@@ -82,9 +82,10 @@ artifact. Exports are never committed.
 
 Architecture decision records live in [`adr/`](../../adr/) at the repository
 root, outside this directory, so they are not imported into the workspace with
-`!adrs`. That directory arrives with the next scaffold step; until it does, this
-model is unjustified by design — every placement choice it shows is still open.
+`!adrs`.
 
-An ADR is expected to settle, at least: where the gateway runs (self-hosted
-versus the documented APIM node), which metrics store sits behind Grafana, and
-whether the entitlement source stays a set of Entra ID groups.
+Placement is settled by [ADR-0002](../../adr/0002-hybrid-topology-and-placement.md)
+and amended by [ADR-0005](../../adr/0005-lab-tier-on-azure.md), which puts the lab
+tier on Azure Container Apps with Azure-native logs, traces and metrics, and leaves
+the on-prem cluster as the documented exit environment. Still open: whether the
+entitlement source stays a set of Entra ID groups.

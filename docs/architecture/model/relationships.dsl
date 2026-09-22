@@ -35,31 +35,31 @@ zeroTrustProxy -> panoptes.grafana "Brokers administrator access to" "HTTPS, dev
 
 // ── Gateway ─────────────────────────────────────────────────────────────────
 panoptes.gateway -> entraId "Validates bearer tokens against" "OIDC/JWKS" "Layer Gateway"
-panoptes.gateway -> panoptes.policies "Checks entitlement and the data class to provider mapping with" "HTTP/JSON, in-cluster" "Layer Gateway"
-panoptes.gateway -> panoptes.configStore "Loads routing, fallback, quota and rate-limit configuration from" "Kubernetes ConfigMap, rendered from Git" "Layer Gateway"
-panoptes.gateway -> panoptes.secretStore "Reads provider API keys from" "HTTPS, workload identity federation" "Layer Gateway"
-panoptes.gateway -> panoptes.otel "Emits traces, metrics and the per-call audit record to" "OTLP/gRPC, in-cluster" "Layer Gateway"
+panoptes.gateway -> panoptes.policies "Checks entitlement and the data class to provider mapping with" "HTTP/JSON, environment-internal" "Layer Gateway"
+panoptes.gateway -> panoptes.configStore "Loads routing, fallback, quota and rate-limit configuration from" "Config as code, rendered from Git" "Layer Gateway"
+panoptes.gateway -> panoptes.secretStore "Reads provider API keys from" "HTTPS, managed identity" "Layer Gateway"
+panoptes.gateway -> panoptes.otel "Emits traces, metrics and the per-call audit record to" "OTLP/gRPC, environment-internal" "Layer Gateway"
 
 panoptes.gateway -> aiFoundry "Calls hosted model deployments on" "HTTPS/JSON, key from the secret store" "Layer Gateway"
 panoptes.gateway -> anthropicApi "Calls models on" "HTTPS/JSON, key from the secret store" "Layer Gateway"
 panoptes.gateway -> openaiApi "Calls models on" "HTTPS/JSON, key from the secret store" "Layer Gateway"
-panoptes.gateway -> selfHostedRuntime "Calls models on" "HTTPS/JSON, in-cluster; no prompt leaves the estate" "Layer Gateway"
+panoptes.gateway -> selfHostedRuntime "Calls models on" "HTTPS/JSON, environment-internal; no prompt leaves the estate" "Layer Gateway"
 
 // ── Controls plane ──────────────────────────────────────────────────────────
-panoptes.policies -> panoptes.entitlements "Reads consumer group membership from" "HTTPS, Microsoft Graph, workload identity" "Layer Controls"
+panoptes.policies -> panoptes.entitlements "Reads consumer group membership from" "HTTPS, Microsoft Graph, managed identity" "Layer Controls"
 panoptes.entitlements -> entraId "Is held as security groups in" "Microsoft Graph" "Layer Controls"
-panoptes.evidence -> panoptes.policies "Collects policy decisions and rule versions from" "HTTP/JSON, in-cluster" "Layer Controls"
-panoptes.evidence -> panoptes.loki "Collects gateway audit records from" "HTTP/JSON, in-cluster" "Layer Controls"
+panoptes.evidence -> panoptes.policies "Collects policy decisions and rule versions from" "HTTP/JSON, environment-internal" "Layer Controls"
+panoptes.evidence -> panoptes.loki "Collects gateway audit records from" "HTTP/JSON, environment-internal" "Layer Controls"
 panoptes.evidence -> panoptes.register "Collects onboarding and review records from" "Git" "Layer Controls"
 
 // ── Telemetry and FinOps ────────────────────────────────────────────────────
-panoptes.otel -> panoptes.loki "Forwards logs and audit records to" "OTLP, in-cluster" "Layer Telemetry"
-panoptes.otel -> panoptes.tempo "Forwards traces to" "OTLP, in-cluster" "Layer Telemetry"
-panoptes.otel -> panoptes.grafana "Exports platform metrics to" "Prometheus remote write, in-cluster" "Layer Telemetry"
-panoptes.otel -> panoptes.meter "Forwards token and request usage events to" "OTLP, in-cluster" "Layer Telemetry"
-panoptes.meter -> panoptes.grafana "Writes cost attributed to consumer, model and workload to" "HTTP/JSON, in-cluster" "Layer Telemetry"
-panoptes.grafana -> panoptes.loki "Queries logs from" "HTTP/JSON, in-cluster" "Layer Telemetry"
-panoptes.grafana -> panoptes.tempo "Queries traces from" "HTTP/JSON, in-cluster" "Layer Telemetry"
+panoptes.otel -> panoptes.loki "Forwards logs and audit records to" "OTLP, environment-internal" "Layer Telemetry"
+panoptes.otel -> panoptes.tempo "Forwards traces to" "OTLP, environment-internal" "Layer Telemetry"
+panoptes.otel -> panoptes.grafana "Exports platform metrics to" "Prometheus remote write, environment-internal" "Layer Telemetry"
+panoptes.otel -> panoptes.meter "Forwards token and request usage events to" "OTLP, environment-internal" "Layer Telemetry"
+panoptes.meter -> panoptes.grafana "Writes cost attributed to consumer, model and workload to" "HTTP/JSON, environment-internal" "Layer Telemetry"
+panoptes.grafana -> panoptes.loki "Queries logs from" "HTTP/JSON, environment-internal" "Layer Telemetry"
+panoptes.grafana -> panoptes.tempo "Queries traces from" "HTTP/JSON, environment-internal" "Layer Telemetry"
 
 // ── Lifecycle ───────────────────────────────────────────────────────────────
 panoptes.cli -> panoptes.register "Writes intake, risk tier and lifecycle stage records to" "Git" "Layer Lifecycle"

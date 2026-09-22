@@ -2,7 +2,7 @@
 
 - **Owner** — AI Platform
 - **Status** — Draft
-- **Last reviewed** — 2026-09-21
+- **Last reviewed** — 2026-09-22
 - **Out of scope** — model training and fine-tuning; data science tooling; end-user
   application development; Microsoft 365 tenant operation outside the Copilot surfaces
   listed in the catalogue.
@@ -32,10 +32,12 @@ it did and what it cost; the **lifecycle** governs how a workload gets in and ou
 **Copilot estate** is the part of the fleet administered rather than built. Placement is
 hybrid. An Azure subscription hosts the control plane and the hosted models. External
 providers (Anthropic, OpenAI) are reached only through the gateway — never directly by a
-consumer. On-prem Kubernetes runs the gateway itself, the self-hosted model and the
-observability stack. Admin-plane access goes through a zero-trust proxy rather than a
-network perimeter. The C4 model belongs in `docs/architecture/` and placement decisions in
-`adr/`; neither directory exists yet — both arrive with the next scaffold steps.
+consumer. The lab tier — gateway, self-hosted model and observability — runs on Azure
+Container Apps in the lab subscription, scaling to zero, with logs and traces in
+Application Insights and metrics in Azure Monitor managed Prometheus (ADR-0005); the
+on-prem Kubernetes cluster is the documented exit environment rather than a running tier.
+Admin-plane access goes through a zero-trust proxy rather than a network perimeter. The C4
+model is in `docs/architecture/` and placement decisions in `adr/`.
 
 ## Service catalogue
 
@@ -81,10 +83,10 @@ This is the target split. Today nothing runs; the catalogue above is the current
 
 | Runs on the estate | Documented and dry-run only |
 | --- | --- |
-| Gateway with three providers, quotas and fallback | Microsoft 365 Copilot tenant administration |
-| Cost dashboards | GitHub Copilot tenant administration |
+| Gateway with three providers, quotas and fallback, on Azure Container Apps | Microsoft 365 Copilot tenant administration |
+| Cost dashboards, on Azure-native logs, traces and metrics | GitHub Copilot tenant administration |
 | Policy checks in CI | Third-party risk and procurement flow |
-| Onboarding CLI | |
+| Onboarding CLI | On-prem Kubernetes as the exit environment: Compose file and manifests, never applied |
 
 No tenant is simulated. Where a control needs a Microsoft 365 tenant, the tenant is absent,
 not faked: scripts that touch Microsoft Graph run in dry-run mode only, and their output is

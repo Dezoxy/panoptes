@@ -4,6 +4,8 @@
 
 Accepted
 
+Amended by [0005. Lab tier on Azure](0005-lab-tier-on-azure.md)
+
 ## Date
 
 2026-09-21
