@@ -1,0 +1,29 @@
+---
+# Dependency updates arrive as pull requests, one ecosystem at a time, weekly.
+# Action pins are commit SHAs; Dependabot moves the SHA and the trailing tag comment.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(ci)"
+  - package-ecosystem: terraform
+    directory: /iac/azure
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(iac)"
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore"
+  - package-ecosystem: docker
+    directory: /gateway
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(gateway)"
