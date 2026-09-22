@@ -21,6 +21,8 @@ surface may change without a major version bump.
   three-tier four-axis risk rubric, RFC and review process, documentation conventions.
 - ADR-0001 to ADR-0004: decision records, hybrid topology and placement, LiteLLM model
   gateway, CI on GitHub Actions.
+- ADR-0005: lab tier on Azure Container Apps with Azure-native observability; on-prem tier
+  documented as the exit environment.
 - C4 model in Structurizr DSL with a CI workflow that validates, inspects and exports it.
 - Directory skeleton with per-directory scope, owning function and delivery phase.
 - `panoptes_platform` package and `panoptes` CLI skeleton (uv, typer, mypy strict).

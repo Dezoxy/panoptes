@@ -23,7 +23,7 @@ last two are outside the system boundary.
 | --- | --- | --- |
 | Model gateway | Routing, fallback, per-key quotas, rate limits, audit records | `panoptes-gateway`, Gateway config store |
 | Controls plane | Decides what a consumer may do, and holds the evidence that it decided | `panoptes-policies`, Entitlement source, Secret store, Evidence collector |
-| Telemetry and FinOps | Records what happened and what it cost | `panoptes-meter`, OpenTelemetry collector, Loki, Tempo, Grafana |
+| Telemetry and FinOps | Records what happened and what it cost | `panoptes-meter`, OpenTelemetry collector, Grafana; Loki and Tempo documented only |
 | Lifecycle | Governs how a workload gets in, and out | `panoptes` CLI, Onboarding register |
 | Consumer surfaces | What a consumer reads and requests through | Self-service portal, Developer documentation site |
 | Providers | Where the models actually run | Azure AI Foundry, Anthropic, OpenAI, self-hosted runtime |
@@ -34,14 +34,18 @@ last two are outside the system boundary.
 ### Trust boundaries
 
 Placement is hybrid, and each boundary is crossed under a named identity rather
-than from a trusted network position.
+than from a trusted network position. ADR-0005 moves the lab tier — gateway,
+self-hosted model and observability — onto Azure Container Apps in the lab
+subscription, with logs and traces in Application Insights and metrics in Azure
+Monitor managed Prometheus; the on-prem cluster stays in the model as the
+documented exit environment.
 
 | Boundary | What crosses it | Under what identity |
 | --- | --- | --- |
 | Consumer to platform | Chat, completion and embedding requests | Entra ID bearer token, validated by the gateway against JWKS |
-| Platform to Azure | Entitlement reads, secret reads, hosted model calls | Workload identity federation; no long-lived credential in the cluster |
+| Platform to Azure | Entitlement reads, secret reads, hosted model calls | Managed identity; no long-lived credential in the runtime |
 | Platform to external providers | Model calls to Anthropic and OpenAI | Provider API key read from the secret store at call time |
-| Platform to on-prem runtime | Model calls for data classes that may not leave the estate | In-cluster; no prompt leaves the estate |
+| Platform to self-hosted runtime | Model calls for data classes that may not leave own-tenancy infrastructure | Inside the Container Apps environment; no prompt leaves the subscription |
 | Operator to admin surfaces | Gateway, policy and dashboard administration | Zero-trust proxy on device posture and phishing-resistant MFA |
 | Platform to Microsoft 365 tenant | Copilot estate administration | Dry-run only; the call is printed, not made |
 
@@ -62,9 +66,11 @@ deployed. The repository README carries the status legend; this model marks the
 distinction in two places:
 
 - A deployment node tagged `documented` is drawn with a dashed border. It is a
-  placement option that has been written down and not built. The APIM AI Gateway
-  node is the current example: it is the Azure-native alternative to the
-  self-hosted gateway, kept in the model so the choice stays visible.
+  placement option that has been written down and not built. Two examples: the
+  APIM AI Gateway, the Azure-native alternative to the self-hosted gateway; and
+  the on-prem Kubernetes node, which since ADR-0005 is the exit environment
+  rather than the lab tier, and holds manifests rather than running instances.
+  The Loki and Tempo containers carry the same tag for the same reason.
 - The Copilot estate is administered, not built. Its automation runs against
   Microsoft Graph in dry-run mode: there is no tenant to change, and the output
   of a run is the call it would have made.

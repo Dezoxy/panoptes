@@ -9,7 +9,7 @@ panoptes = softwareSystem "Panoptes" "The shared AI platform: one way in to a mo
 
     group "Model gateway" {
         gateway = container "panoptes-gateway" "Single ingress for model traffic. Routes by data class and model, falls back between providers, enforces per-key quotas and rate limits, and emits the audit record for every call." "LiteLLM proxy, Python" "Layer Gateway,Gateway"
-        configStore = container "Gateway config store" "Routing table, fallback chains, quota and rate-limit definitions. Config as code: changed by pull request in this repository, rendered into the cluster." "Git, rendered to a Kubernetes ConfigMap" "Layer Gateway"
+        configStore = container "Gateway config store" "Routing table, fallback chains, quota and rate-limit definitions. Config as code: changed by pull request in this repository, rendered into the cluster." "Git, rendered into the gateway container at deploy time" "Layer Gateway"
     }
 
     group "Controls plane" {
@@ -22,8 +22,12 @@ panoptes = softwareSystem "Panoptes" "The shared AI platform: one way in to a mo
     group "Telemetry and FinOps" {
         meter = container "panoptes-meter" "Turns token and request usage into cost attributed to a consumer, a model and a workload. The number a budget is measured against." "Python" "Layer Telemetry"
         otel = container "OpenTelemetry collector" "Single collection point for traces, metrics and logs leaving the gateway. Fans them out to the stores and to the cost pipeline." "OpenTelemetry Collector" "Layer Telemetry"
-        loki = container "Loki" "Log and audit-record store." "Grafana Loki" "Layer Telemetry,Storage"
-        tempo = container "Tempo" "Trace store." "Grafana Tempo" "Layer Telemetry,Storage"
+        // Documented, not running. ADR-0005 replaces both in the lab tier with
+        // Azure-native stores — Application Insights over a Log Analytics
+        // workspace for logs and traces — and keeps them modelled as the answer
+        // if the lab ever has to hold an audit query those stores cannot.
+        loki = container "Loki" "Log and audit-record store. Not deployed: Application Insights holds logs and audit records in the lab tier (ADR-0005)." "Grafana Loki" "Layer Telemetry,Storage,documented"
+        tempo = container "Tempo" "Trace store. Not deployed: Application Insights holds traces in the lab tier (ADR-0005)." "Grafana Tempo" "Layer Telemetry,Storage,documented"
         grafana = container "Grafana" "Dashboards, budgets and alerting for spend, quota and gateway health." "Grafana" "Layer Telemetry"
     }
 
