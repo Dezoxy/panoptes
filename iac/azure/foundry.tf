@@ -37,33 +37,14 @@ resource "azurerm_cognitive_account" "foundry" {
   tags = var.tags
 }
 
-# Primary: gpt-4o-mini on the regional Standard SKU (data stays in Sweden Central).
-# Chosen because a new subscription carries zero quota for gpt-5.4-mini and gpt-4.1-mini
-# on non-global SKUs (`az cognitiveservices usage list -l swedencentral`, 2026-09-22).
-# A quota request for gpt-5.4-mini DataZoneStandard is open; swapping the model is a
-# one-line change here and a provider-change record.
-resource "azurerm_cognitive_deployment" "gpt_4o_mini" {
-  name                 = "gpt-4o-mini"
-  cognitive_account_id = azurerm_cognitive_account.foundry.id
+# Only one deployment today. gpt-4o-mini 2024-07-18 is refused by the deployment API as
+# deprecated since 2026-03-31 even though `az cognitiveservices model list` still lists it
+# as supported: the catalogue is stale, the API is authoritative. Every other chat model
+# with regional (non-global) quota on this new subscription is deprecated or has no
+# deployable version. The second deployment (gpt-5.4-mini, DataZoneStandard) is added
+# when the quota request is granted; see the provider-change record.
 
-  model {
-    format  = "OpenAI"
-    name    = "gpt-4o-mini"
-    version = "2024-07-18"
-  }
-
-  sku {
-    name     = "Standard"
-    capacity = 10
-  }
-
-  # Pins the deployment to this model version; an upgrade is a deliberate change, not
-  # something Azure does on our behalf. Stated control in ADR-0003 (version pinning).
-  version_upgrade_option = "NoAutoUpgrade"
-}
-
-# In-Azure fallback: gpt-4o on the regional Standard SKU. Same residency, different
-# capacity pool, so a quota exhaustion on the primary does not take the fallback down.
+# Primary: gpt-4o on the regional Standard SKU (data stays in Sweden Central).
 resource "azurerm_cognitive_deployment" "gpt_4o" {
   name                 = "gpt-4o"
   cognitive_account_id = azurerm_cognitive_account.foundry.id

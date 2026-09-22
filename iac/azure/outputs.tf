@@ -31,7 +31,6 @@ output "ai_services_endpoint" {
 output "ai_services_deployment_names" {
   description = "Names of the Foundry model deployments this module manages."
   value = [
-    azurerm_cognitive_deployment.gpt_4o_mini.name,
     azurerm_cognitive_deployment.gpt_4o.name,
   ]
 }

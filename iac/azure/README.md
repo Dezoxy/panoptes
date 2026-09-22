@@ -19,7 +19,7 @@ primary, West Europe as the documented failover, on Azure Container Apps.
   any of the five mandatory tags (`policy.tf`).
 - Key Vault, RBAC-authorised, with the signed-in operator granted `Key Vault Secrets
   Officer` (`keyvault.tf`).
-- The Azure AI Foundry account and its two model deployments, Sweden Central
+- The Azure AI Foundry account and its model deployment (gpt-4o, regional Standard), Sweden Central; a second deployment follows the pending quota request
   (`foundry.tf`). See the secrets table below for where the key and endpoint land.
 - Log Analytics, workspace-based Application Insights and the Azure Monitor managed
   Prometheus workspace (`observability.tf`).
