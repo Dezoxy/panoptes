@@ -62,6 +62,7 @@ enforce it once that directory lands; until then it is enforced in review.
 | 0003 | [Run the model gateway on LiteLLM, configured as code](0003-model-gateway-litellm.md) | Accepted | 2026-09-21 |
 | 0004 | [Run CI/CD on GitHub Actions, with portable pipelines](0004-ci-on-github-actions.md) | Accepted | 2026-09-21 |
 | 0005 | [Run the lab tier on Azure Container Apps](0005-lab-tier-on-azure.md) | Accepted | 2026-09-22 |
+| 0006 | [Raise dependency updates with Renovate instead of Dependabot](0006-renovate-for-dependency-updates.md) | Accepted | 2026-09-22 |
 
 ## A note on the Structurizr importer
 
