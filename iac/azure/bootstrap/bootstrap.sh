@@ -257,6 +257,22 @@ Backend values for iac/azure/backend.tf and terraform init:
   container_name        = "$CONTAINER_NAME"
   key                    = "lab.tfstate"
 
-Run:
-  terraform init -backend-config="storage_account_name=$STORAGE_ACCOUNT_NAME"
 BACKEND
+
+# Write the backend file Terraform reads at init time, so nobody copies values by hand.
+# It holds identifiers, not secrets, but it is subscription-specific, so it is gitignored.
+BACKEND_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lab.tfbackend"
+if [[ "$DRY_RUN" == "true" ]]; then
+  echo "DRY-RUN: would write $BACKEND_FILE" >&2
+else
+  cat > "$BACKEND_FILE" <<EOF_BACKEND
+# Written by bootstrap/bootstrap.sh on $(date -u +%Y-%m-%dT%H:%M:%SZ). Gitignored. Regenerate by rerunning the script.
+resource_group_name  = "$RESOURCE_GROUP"
+storage_account_name = "$STORAGE_ACCOUNT_NAME"
+container_name       = "$CONTAINER_NAME"
+key                  = "lab.tfstate"
+use_azuread_auth     = true
+EOF_BACKEND
+  echo "Backend file written: $BACKEND_FILE" >&2
+  echo "Next: cd iac/azure && make init plan" >&2
+fi

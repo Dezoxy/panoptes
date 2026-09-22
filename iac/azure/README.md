@@ -41,26 +41,27 @@ needs it to exist before it can store anything — so it is created once by a sc
 1. **Once per subscription** — create the state backend:
 
    ```sh
-   SUBSCRIPTION_ID=<guid> ./bootstrap/bootstrap.sh
+   SUBSCRIPTION_ID=<guid> make bootstrap
    ```
 
-   This prints the storage account name it created (see `bootstrap/bootstrap.sh` for
-   what it does and why). Run it with `--dry-run` first if you want to see the `az`
-   commands before anything is created.
+   Creates the state resource group, storage account and container, registers the
+   resource providers Phase 1 needs, and writes `lab.tfbackend` (gitignored) with the
+   backend values so nothing is copied by hand. Rerunning it is safe. Run the script
+   with `--dry-run` to see the `az` commands before anything is created.
 
-2. **Initialise, with the storage account name from step 1**:
+2. **Initialise** against the backend file:
 
    ```sh
-   terraform init -backend-config="storage_account_name=<from bootstrap.sh output>"
+   make init
    ```
 
-3. **Plan**:
+3. **Plan**, saved to `lab.tfplan` (gitignored) so apply runs exactly what was read:
 
    ```sh
-   terraform plan
+   make plan
    ```
 
-4. **Apply is run by the platform owner, locally, after reading the plan.** Never from
+4. **Apply is run by the platform owner, locally, after reading the plan** (`make apply`). Never from
    CI — ADR-0004 keeps CI read-only, and the working rule in `CLAUDE.md` is that
    nothing is deployed on this platform's behalf without a human reading the plan
    first.
