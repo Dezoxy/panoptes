@@ -69,10 +69,14 @@ resource "azurerm_container_app_environment" "lab" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.lab.id
   logs_destination           = "log-analytics"
 
-  # No workload_profile block: omitting it keeps the environment Consumption-only
-  # (azurerm_container_app_environment docs, v4.81.0 — "Defining a Consumption profile
-  # is optional"), which is what ADR-0005 decided and is also the only way to get
-  # scale-to-zero. Adding a named profile later forces recreation of the environment.
+  # Consumption-only, as ADR-0005 decided (scale-to-zero). Azure adds this profile to
+  # every new environment on its own; declaring it keeps the plan empty instead of
+  # showing a removal that Azure ignores on every apply. Adding a dedicated profile
+  # later forces recreation of the environment.
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+  }
 
   tags = var.tags
 }
@@ -214,9 +218,10 @@ resource "azapi_resource" "gateway" {
         # no VNet placement yet; see the same trade-off recorded on Key Vault and
         # Foundry in keyvault.tf and foundry.tf).
         ingress = {
-          external      = true
-          targetPort    = 4000
-          transport     = "auto"
+          external   = true
+          targetPort = 4000
+          # Azure stores "Auto"; writing it the same way keeps the plan empty.
+          transport     = "Auto"
           allowInsecure = false
         }
 
