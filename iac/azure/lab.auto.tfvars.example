@@ -1,0 +1,8 @@
+# Documented input sample. The real lab.auto.tfvars is gitignored (*.tfvars) — copy
+# this file, drop the .example suffix, and fill in the placeholders below.
+
+subscription_id = "00000000-0000-0000-0000-000000000000"
+
+alert_emails = [
+  "platform-alerts@example.invalid",
+]
