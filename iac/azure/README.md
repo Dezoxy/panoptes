@@ -76,6 +76,15 @@ them (`depends_on`), so no restart step exists. Role propagation can still lag b
 minute on a fresh assignment; a second `make apply` after that is the only remedy ever
 needed.
 
+## Azure CLI profile
+
+The Makefile sets `AZURE_CONFIG_DIR=~/.azure-panoptes`, so every target uses a CLI login
+that belongs to Panoptes alone. Other Azure work on the same machine uses the default
+profile and cannot move the account Terraform acts as. Sign in once with `make login`.
+Running `az` by hand for this estate needs the same variable exported. The providers are
+also pinned to the tenant, so a mismatched login fails at `init` rather than acting
+elsewhere.
+
 ## Operator identities
 
 Two operator accounts exist in this tenant (`operators.tf`):
