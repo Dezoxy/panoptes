@@ -37,24 +37,23 @@ resource "azurerm_cognitive_account" "foundry" {
   tags = var.tags
 }
 
-# gpt-5.4-mini: `az cognitiveservices model list -l swedencentral` shows this model
-# format OpenAI, version 2026-03-17, does not offer the regional "Standard" SKU in
-# Sweden Central — only GlobalStandard, DataZoneStandard and the provisioned/batch
-# SKUs. GlobalStandard is excluded by policy (data leaves the EU data zone), so this
-# uses DataZoneStandard: EU data zone, not pinned to Sweden Central specifically, but
-# still inside the EU residency boundary ADR-0002 requires.
-resource "azurerm_cognitive_deployment" "gpt_5_4_mini" {
-  name                 = "gpt-5.4-mini"
+# Primary: gpt-4o-mini on the regional Standard SKU (data stays in Sweden Central).
+# Chosen because a new subscription carries zero quota for gpt-5.4-mini and gpt-4.1-mini
+# on non-global SKUs (`az cognitiveservices usage list -l swedencentral`, 2026-09-22).
+# A quota request for gpt-5.4-mini DataZoneStandard is open; swapping the model is a
+# one-line change here and a provider-change record.
+resource "azurerm_cognitive_deployment" "gpt_4o_mini" {
+  name                 = "gpt-4o-mini"
   cognitive_account_id = azurerm_cognitive_account.foundry.id
 
   model {
     format  = "OpenAI"
-    name    = "gpt-5.4-mini"
-    version = "2026-03-17"
+    name    = "gpt-4o-mini"
+    version = "2024-07-18"
   }
 
   sku {
-    name     = "DataZoneStandard"
+    name     = "Standard"
     capacity = 10
   }
 
@@ -63,17 +62,16 @@ resource "azurerm_cognitive_deployment" "gpt_5_4_mini" {
   version_upgrade_option = "NoAutoUpgrade"
 }
 
-# gpt-4.1-mini: the same `az cognitiveservices model list` output shows the regional
-# "Standard" SKU is offered for this model/version in Sweden Central, so data stays in
-# region per ADR-0002 rather than only in the EU data zone.
-resource "azurerm_cognitive_deployment" "gpt_4_1_mini" {
-  name                 = "gpt-4.1-mini"
+# In-Azure fallback: gpt-4o on the regional Standard SKU. Same residency, different
+# capacity pool, so a quota exhaustion on the primary does not take the fallback down.
+resource "azurerm_cognitive_deployment" "gpt_4o" {
+  name                 = "gpt-4o"
   cognitive_account_id = azurerm_cognitive_account.foundry.id
 
   model {
     format  = "OpenAI"
-    name    = "gpt-4.1-mini"
-    version = "2025-04-14"
+    name    = "gpt-4o"
+    version = "2024-11-20"
   }
 
   sku {
