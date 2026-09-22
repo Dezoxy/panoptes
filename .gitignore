@@ -29,6 +29,7 @@ node_modules/
 
 # Structurizr / diagram output rendered in CI
 docs/architecture/generated/
+docs/architecture/workspace.json
 
 # Secrets and local environment
 .env
