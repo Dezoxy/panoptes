@@ -94,8 +94,9 @@ the image's build-to-run path is a stored secret:
 - **Push** — GitHub Actions authenticates to Azure with
   [workload identity federation](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation):
   the `github-actions-panoptes` app registration trusts GitHub's own OIDC tokens for
-  this repository (two federated credentials — one for pushes to `main`, one for
-  `pull_request` runs — `github_actions.tf`), and its service principal has `AcrPush`
+  this repository (one federated credential, for pushes to `main` only; pull-request
+  runs build without pushing and hold no identity — `github_actions.tf`), and its
+  service principal has `AcrPush`
   on the registry, nothing more. No client secret, no publish profile, no registry
   password is generated or stored anywhere.
 
