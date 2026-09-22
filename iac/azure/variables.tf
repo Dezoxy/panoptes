@@ -73,7 +73,7 @@ variable "always_on" {
 variable "gateway_image" {
   description = "Container image for the panoptes-gateway Container App, in the lab's own registry (owner decision: no public image, no registry password). `main` is the lab tag, pushed by GitHub Actions on every push to main; pin a sha256 digest tag before any pilot with real consumer traffic (ADR-0005 exit-path and canary reasoning applies to the image too, not just LiteLLM config)."
   type        = string
-  default     = "crpanopteslabswc.azurecr.io/panoptes-gateway:main"
+  default     = "crpanopteslabswc.azurecr.io/panoptes-gateway:sha-3765c15"
 }
 
 variable "otel_collector_image" {
