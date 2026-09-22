@@ -22,7 +22,7 @@
 
 # The gateway image's own registry: no public image, no registry password (owner
 # decision, superseding the earlier public-ghcr.io plan). The gateway pulls with its
-# own system-assigned identity (AcrPull, below); GitHub Actions pushes with workload
+# user-assigned identity (AcrPull, below); GitHub Actions pushes with workload
 # identity federation (github_actions.tf) — no static credential exists anywhere in
 # the image path, from build to running container.
 resource "azurerm_container_registry" "lab" {
@@ -150,6 +150,30 @@ resource "azapi_resource" "postgres" {
   tags = var.tags
 }
 
+# The gateway's identity is user-assigned and created before the app, with its roles
+# already granted, because a system-assigned identity only exists once the app does and
+# the app cannot pull its image (AcrPull) or resolve its Key Vault references (Secrets
+# User) until the roles land: the first revision never becomes healthy and provisioning
+# hangs until it times out. Granting first, then creating, removes the ordering problem.
+resource "azurerm_user_assigned_identity" "gateway" {
+  name                = local.names.gateway_identity
+  resource_group_name = azurerm_resource_group.lab.name
+  location            = azurerm_resource_group.lab.location
+  tags                = var.tags
+}
+
+resource "azurerm_role_assignment" "gateway_kv_secrets_user" {
+  scope                = azurerm_key_vault.lab.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.gateway.principal_id
+}
+
+resource "azurerm_role_assignment" "gateway_acr_pull" {
+  scope                = azurerm_container_registry.lab.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.gateway.principal_id
+}
+
 resource "azapi_resource" "gateway" {
   type      = "Microsoft.App/containerApps@2026-01-01"
   name      = local.names.gateway_container_app
@@ -157,8 +181,16 @@ resource "azapi_resource" "gateway" {
   location  = azurerm_resource_group.lab.location
 
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.gateway.id]
   }
+
+  # Roles are granted to the identity before the app exists (see above), so the first
+  # revision can pull and resolve secrets. Role propagation can still lag by a minute.
+  depends_on = [
+    azurerm_role_assignment.gateway_kv_secrets_user,
+    azurerm_role_assignment.gateway_acr_pull,
+  ]
 
   body = {
     properties = {
@@ -166,7 +198,7 @@ resource "azapi_resource" "gateway" {
       configuration = {
         activeRevisionsMode = "Single"
 
-        # Pulls with the app's own system-assigned identity, not a registry password.
+        # Pulls with the gateway's user-assigned identity, not a registry password.
         # "system" (lower-case) is the literal value RegistryCredentials.identity
         # expects for a system-assigned identity — verified in the same swagger this
         # file already cites; note it differs in casing from Secret.identity's
@@ -177,7 +209,7 @@ resource "azapi_resource" "gateway" {
         registries = [
           {
             server   = azurerm_container_registry.lab.login_server
-            identity = "system"
+            identity = azurerm_user_assigned_identity.gateway.id
           },
         ]
 
@@ -202,17 +234,17 @@ resource "azapi_resource" "gateway" {
           {
             name        = "foundry-api-key"
             keyVaultUrl = "${azurerm_key_vault.lab.vault_uri}secrets/foundry-api-key"
-            identity    = "System"
+            identity    = azurerm_user_assigned_identity.gateway.id
           },
           {
             name        = "appinsights-connection-string"
             keyVaultUrl = "${azurerm_key_vault.lab.vault_uri}secrets/appinsights-connection-string"
-            identity    = "System"
+            identity    = azurerm_user_assigned_identity.gateway.id
           },
           {
             name        = "litellm-master-key"
             keyVaultUrl = "${azurerm_key_vault.lab.vault_uri}secrets/litellm-master-key"
-            identity    = "System"
+            identity    = azurerm_user_assigned_identity.gateway.id
           },
           # The three secrets below are written by the operator, by hand, never by
           # Terraform — see README.md for the exact `az keyvault secret set` commands.
@@ -220,17 +252,17 @@ resource "azapi_resource" "gateway" {
           {
             name        = "anthropic-api-key"
             keyVaultUrl = "${azurerm_key_vault.lab.vault_uri}secrets/anthropic-api-key"
-            identity    = "System"
+            identity    = azurerm_user_assigned_identity.gateway.id
           },
           {
             name        = "openai-api-key"
             keyVaultUrl = "${azurerm_key_vault.lab.vault_uri}secrets/openai-api-key"
-            identity    = "System"
+            identity    = azurerm_user_assigned_identity.gateway.id
           },
           {
             name        = "openrouter-api-key"
             keyVaultUrl = "${azurerm_key_vault.lab.vault_uri}secrets/openrouter-api-key"
-            identity    = "System"
+            identity    = azurerm_user_assigned_identity.gateway.id
           },
           # Not a Key Vault reference: the collector's own config file content,
           # mounted as a volume below. See the fileexists() guard above.
@@ -332,21 +364,4 @@ resource "azapi_resource" "gateway" {
   tags = var.tags
 
   response_export_values = ["properties.configuration.ingress.fqdn"]
-}
-
-# Lets the gateway's own identity resolve the Key Vault references in its secrets
-# block above. Created after the app (principal_id only exists once the app does) —
-# see the chicken-and-egg note next to `secrets`, above.
-resource "azurerm_role_assignment" "gateway_kv_secrets_user" {
-  scope                = azurerm_key_vault.lab.id
-  role_definition_name = "Key Vault Secrets User"
-  principal_id         = azapi_resource.gateway.identity[0].principal_id
-}
-
-# Lets the gateway's own identity pull its own image — see the registries block and
-# its chicken-and-egg note, above.
-resource "azurerm_role_assignment" "gateway_acr_pull" {
-  scope                = azurerm_container_registry.lab.id
-  role_definition_name = "AcrPull"
-  principal_id         = azapi_resource.gateway.identity[0].principal_id
 }
