@@ -17,20 +17,35 @@ primary, West Europe as the documented failover, on Azure Container Apps.
   100% forecast spend (`azurerm_consumption_budget_subscription`).
 - A tag policy assignment on the resource group, denying a resource that is missing
   any of the five mandatory tags (`policy.tf`).
+- Key Vault, RBAC-authorised, with the signed-in operator granted `Key Vault Secrets
+  Officer` (`keyvault.tf`).
+- The Azure AI Foundry account and its two model deployments, Sweden Central
+  (`foundry.tf`). See the secrets table below for where the key and endpoint land.
+- Log Analytics, workspace-based Application Insights and the Azure Monitor managed
+  Prometheus workspace (`observability.tf`).
+- Three Entra ID security groups standing in for consumer teams, and the
+  `panoptes-gateway` app registration with its `Gateway.Consumer` app role
+  (`entra.tf`).
 
-Nothing else exists yet. `locals.tf` resolves the names later steps will use — Key
-Vault, the Container Apps environment, Log Analytics, Application Insights, the Azure
-Monitor workspace — so every step follows the same naming convention from the start,
-even though this step creates none of them.
+Public network access is enabled on Key Vault and the Foundry account for this step,
+each with a `#checkov:skip` recording why: the production placement (ADR-0002) uses a
+private endpoint, which the on-prem gateway cannot reach until it runs inside the
+Azure VNet.
+
+## Key Vault secrets
+
+| Secret | Written by | Read by |
+| --- | --- | --- |
+| `foundry-api-key` | `foundry.tf`, from the Foundry account's primary key | LiteLLM (`../../gateway/`), until Entra-only auth replaces the key |
+| `foundry-endpoint` | `foundry.tf`, from the Foundry account | LiteLLM (`../../gateway/`) |
+| `appinsights-connection-string` | `observability.tf`, from the Application Insights resource | The gateway's OpenTelemetry collector sidecar, once it exists |
 
 ## What later steps add
 
-Key Vault; the two Azure AI Foundry model deployments (Sweden Central); Entra app
-registrations; the Container Apps environment and the `panoptes-gateway` and Ollama
-Container Apps; the Container Apps PostgreSQL add-on; the OpenTelemetry
-collector/Application Insights/Azure Monitor managed Prometheus observability path;
-the Grafana Container App; the `panoptes-meter` scheduled job. See ADR-0005 for the
-full placement.
+The Container Apps environment and the `panoptes-gateway` and Ollama Container Apps;
+the Container Apps PostgreSQL add-on; the OpenTelemetry collector sidecar; the Grafana
+Container App; the `panoptes-meter` scheduled job. See ADR-0005 for the full
+placement.
 
 ## Bootstrap and init sequence
 

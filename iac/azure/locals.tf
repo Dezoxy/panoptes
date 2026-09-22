@@ -17,5 +17,6 @@ locals {
     log_analytics              = "log-${local.name_prefix}"
     app_insights               = "appi-${local.name_prefix}"
     monitor_workspace          = "amw-${local.name_prefix}"
+    ai_services                = "ais-${local.name_prefix}"
   }
 }
