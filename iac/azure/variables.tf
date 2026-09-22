@@ -14,12 +14,6 @@ variable "location" {
   default     = "swedencentral"
 }
 
-variable "location_secondary" {
-  description = "Documented failover region (ADR-0002). Not provisioned by this module."
-  type        = string
-  default     = "westeurope"
-}
-
 variable "environment" {
   description = "Environment name used in resource naming."
   type        = string
@@ -57,16 +51,6 @@ variable "budget_amount" {
 variable "alert_emails" {
   description = "Email addresses notified by the budget's spend alerts."
   type        = list(string)
-}
-
-variable "always_on" {
-  description = <<-EOT
-    Reserved for a later step. When true, the gateway and Grafana Container Apps
-    (ADR-0005) run with a minimum of one replica instead of scaling to zero. This
-    module does not yet create any Container Apps, so the value has no effect here.
-  EOT
-  type        = bool
-  default     = false
 }
 
 variable "budget_start_date" {
