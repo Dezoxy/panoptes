@@ -63,3 +63,21 @@ variable "budget_start_date" {
     error_message = "budget_start_date must be the first day of a month at midnight UTC, e.g. 2026-09-01T00:00:00Z."
   }
 }
+
+variable "always_on" {
+  description = "ADR-0005: sets minimum replicas to one for the gateway when responsiveness matters (e.g. a measurement window), and back to zero otherwise. Cold starts distort latency numbers, so this is a deliberate, temporary switch, not a standing setting."
+  type        = bool
+  default     = false
+}
+
+variable "gateway_image" {
+  description = "Container image for the panoptes-gateway Container App, in the lab's own registry (owner decision: no public image, no registry password). `main` is the lab tag, pushed by GitHub Actions on every push to main; pin a sha256 digest tag before any pilot with real consumer traffic (ADR-0005 exit-path and canary reasoning applies to the image too, not just LiteLLM config)."
+  type        = string
+  default     = "crpanopteslabswc.azurecr.io/panoptes-gateway:main"
+}
+
+variable "otel_collector_image" {
+  description = "Container image for the OpenTelemetry collector sidecar. Tag verified to exist on Docker Hub (otel/opentelemetry-collector-contrib) at the time this was written; bump deliberately, not on every plan."
+  type        = string
+  default     = "otel/opentelemetry-collector-contrib:0.161.0"
+}

@@ -32,3 +32,9 @@ surface may change without a major version bump.
 - Azure control plane: Key Vault, Foundry account with two pinned deployments, Entra
   groups and gateway app registration, Log Analytics, Application Insights, Azure
   Monitor workspace.
+- Gateway config as code: five routes with data-class and residency metadata, two
+  fallback groups, JWT and virtual-key auth, metadata-only logging; image build
+  workflow pushing to ACR through OIDC; Compose exit-path stack; config tests.
+- Container Apps environment, PostgreSQL add-on, gateway app with OpenTelemetry
+  sidecar, Key Vault references, always_on switch; Azure Container Registry with
+  managed-identity pull and GitHub OIDC push.

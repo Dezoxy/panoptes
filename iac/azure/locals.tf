@@ -18,5 +18,13 @@ locals {
     app_insights               = "appi-${local.name_prefix}"
     monitor_workspace          = "amw-${local.name_prefix}"
     ai_services                = "ais-${local.name_prefix}"
+
+    # Container Apps, per the README naming table: ca-<workload>-<component>-<environment>-<region>.
+    gateway_container_app  = "ca-${var.workload}-gateway-${var.environment}-${local.region_code}"
+    postgres_container_app = "ca-${var.workload}-postgres-${var.environment}-${local.region_code}"
+
+    # Container registries cannot take hyphens (same constraint as storage accounts,
+    # documented in README.md's naming convention section): cr<workload><environment><region>.
+    container_registry = "cr${var.workload}${var.environment}${local.region_code}"
   }
 }

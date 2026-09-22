@@ -63,3 +63,28 @@ output "gateway_app_client_id" {
   description = "Client id of the panoptes-gateway app registration, for consumers requesting a token."
   value       = azuread_application.gateway.client_id
 }
+
+output "container_apps_environment_id" {
+  description = "Resource id of the Container Apps environment."
+  value       = azurerm_container_app_environment.lab.id
+}
+
+output "gateway_fqdn" {
+  description = "Public HTTPS URL of the panoptes-gateway Container App."
+  value       = "https://${azapi_resource.gateway.output.properties.configuration.ingress.fqdn}"
+}
+
+output "gateway_principal_id" {
+  description = "Object id of the gateway Container App's system-assigned managed identity, e.g. for granting it access to a resource this module does not manage."
+  value       = azapi_resource.gateway.identity[0].principal_id
+}
+
+output "container_registry_login_server" {
+  description = "Login server (hostname) of the Panoptes lab container registry, for image references and `docker login`/`az acr login`."
+  value       = azurerm_container_registry.lab.login_server
+}
+
+output "github_actions_client_id" {
+  description = "Client id of the github-actions-panoptes app registration. Not a secret — this is the identifier the GitHub Actions OIDC exchange presents; see README.md for the repository variables it feeds."
+  value       = azuread_application.github_actions.client_id
+}
