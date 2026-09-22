@@ -199,13 +199,9 @@ resource "azapi_resource" "gateway" {
         activeRevisionsMode = "Single"
 
         # Pulls with the gateway's user-assigned identity, not a registry password.
-        # "system" (lower-case) is the literal value RegistryCredentials.identity
-        # expects for a system-assigned identity — verified in the same swagger this
-        # file already cites; note it differs in casing from Secret.identity's
-        # "System" above, which is the API's own inconsistency, not a typo here.
-        # Same chicken-and-egg as the Key Vault role below: the AcrPull role only
-        # exists once this app's identity does, so the first revision may need a
-        # restart once it has propagated (README.md).
+        # RegistryCredentials.identity takes the identity's resource id for a
+        # user-assigned identity (swagger cited above). AcrPull is granted before this
+        # app exists, so the first revision can pull.
         registries = [
           {
             server   = azurerm_container_registry.lab.login_server
@@ -224,12 +220,9 @@ resource "azapi_resource" "gateway" {
           allowInsecure = false
         }
 
-        # Key Vault references resolve at revision activation using this app's own
-        # identity — but that identity does not get the Key Vault Secrets User role
-        # until azurerm_role_assignment.gateway_kv_secrets_user, below, which can only
-        # be created after this app (and its identity) exists. The first revision's
-        # secrets will fail to resolve; restarting it once the role has propagated is
-        # a manual operator step, documented in README.md.
+        # Key Vault references resolve at revision activation using the user-assigned
+        # identity, which already holds Key Vault Secrets User (granted above, before
+        # this app is created). Secret.identity takes the identity's resource id.
         secrets = [
           {
             name        = "foundry-api-key"
