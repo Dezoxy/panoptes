@@ -106,7 +106,6 @@ resource group `bootstrap.sh` creates, which is tagged by the script itself inst
 
 ## `always_on`
 
-Reserved for the step that adds the gateway and Grafana Container Apps. Defaults to
-`false` (scale to zero, per ADR-0005). Set to `true` only for the duration of a
-measurement window where cold starts would distort latency numbers, then back to
-`false` — an always-on replica of either app is ongoing spend against the 30 EUR cap.
+Arrives with the gateway step (Phase 1, step 3). It sets minimum replicas to one for the
+gateway and Grafana when responsiveness matters and back to zero afterwards (ADR-0005).
+It is not declared yet: unused variables fail tflint, so variables are added when used.
