@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-The repository lives at `github.com/toomhorvath/panoptes`. CI is already load-bearing: `pre-commit`
+The repository lives at `github.com/Dezoxy/panoptes`. CI is already load-bearing: `pre-commit`
 gates every commit, the architecture workspace is validated and exported on each change, and
 `../iac/` will shortly need `terraform plan` and `terraform apply` against an Azure subscription.
 
