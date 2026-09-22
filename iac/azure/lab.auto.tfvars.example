@@ -11,3 +11,4 @@ alert_emails = [
 # comment and README.md). Retrieve with, while signed in as that account:
 #   az ad signed-in-user show --query id -o tsv
 break_glass_object_id = "00000000-0000-0000-0000-000000000000"
+tenant_id = "00000000-0000-0000-0000-000000000000"

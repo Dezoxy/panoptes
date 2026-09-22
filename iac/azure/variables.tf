@@ -91,3 +91,13 @@ variable "break_glass_object_id" {
     error_message = "break_glass_object_id must be a GUID, e.g. 00000000-0000-0000-0000-000000000000."
   }
 }
+
+variable "tenant_id" {
+  description = "Entra tenant the lab lives in. Pinned on every provider so the CLI default account cannot redirect an apply."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", var.tenant_id))
+    error_message = "tenant_id must be a GUID."
+  }
+}

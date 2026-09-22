@@ -272,6 +272,8 @@ storage_account_name = "$STORAGE_ACCOUNT_NAME"
 container_name       = "$CONTAINER_NAME"
 key                  = "lab.tfstate"
 use_azuread_auth     = true
+tenant_id            = "$(az account show --subscription "$SUBSCRIPTION_ID" --query tenantId -o tsv)"
+subscription_id      = "$SUBSCRIPTION_ID"
 EOF_BACKEND
   echo "Backend file written: $BACKEND_FILE" >&2
   echo "Next: cd iac/azure && make init plan" >&2
