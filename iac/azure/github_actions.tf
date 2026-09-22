@@ -24,7 +24,10 @@ resource "azuread_application_federated_identity_credential" "github_main" {
   description    = "GitHub Actions: pushes to main on Dezoxy/panoptes (builds and pushes the gateway image)."
   audiences      = ["api://AzureADTokenExchange"]
   issuer         = "https://token.actions.githubusercontent.com"
-  subject        = "repo:Dezoxy/panoptes:ref:refs/heads/main"
+  # GitHub's OIDC subject now embeds the immutable owner and repository IDs, so a rename
+  # of either cannot silently re-point the trust. Verified from the token GitHub presented
+  # on 2026-09-22 and from `gh api users/Dezoxy` / `gh api repos/Dezoxy/panoptes`.
+  subject = "repo:Dezoxy@176568786/panoptes@1381287997:ref:refs/heads/main"
 }
 
 # Push access to the gateway image's registry — nothing else. A read-only
