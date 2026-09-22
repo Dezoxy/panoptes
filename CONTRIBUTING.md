@@ -42,6 +42,13 @@ pre-commit run --all-files
 The Terraform hooks need `terraform`, `tflint`, `trivy` and `checkov` on `PATH`. CI
 installs them; locally, install what you need for the area you are touching.
 
+## Dependency updates
+
+Renovate raises dependency pull requests from `renovate.json` (ADR-0006), weekly and one at a
+time; nothing automerges. The Dependency Dashboard issue lists what is pending. A Terraform
+provider major waits there for approval and arrives labelled `needs-plan-review`: read a
+`terraform plan` before merging it. The `panoptes-gateway` image pin is moved by hand.
+
 ## Decision records
 
 Any decision that affects **where something runs, which provider it uses, where a security
