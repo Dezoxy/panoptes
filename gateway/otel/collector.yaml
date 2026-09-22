@@ -1,0 +1,56 @@
+# OpenTelemetry Collector Contrib config for the sidecar running alongside
+# panoptes-gateway (ADR-0005: "An OpenTelemetry collector runs as a sidecar of the
+# gateway; logs and traces go to Application Insights").
+#
+# Image: otel/opentelemetry-collector-contrib:0.161.0 — pinned deliberately, verified
+# present via `docker manifest inspect otel/opentelemetry-collector-contrib:0.161.0`
+# (amd64 and arm64 both published) on 2026-09-22. iac/azure's Container Apps sidecar
+# definition should pin this same tag.
+#
+# Sampling is deliberately OFF end to end (ADR-0005: "a sampled-away audit record is not
+# an audit record"). No probabilistic or tail-sampling processor is configured below,
+# and none should be added without a written exception recorded against the ADR.
+#
+# Metrics are not carried yet. Azure Monitor managed Prometheus ingestion, by remote
+# write, arrives with panoptes-meter in Phase 1 step 5 (ADR-0005); until then this
+# collector only pipelines traces and logs.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # Default batch sizing. The gateway is a single low-throughput instance in the lab
+  # tier, so no tuning earns its complexity yet.
+  batch: {}
+
+exporters:
+  # Application Insights sink (ADR-0005). "azure_monitor" is the current component
+  # type in opentelemetry-collector-contrib; "azuremonitor" is a deprecated alias for
+  # the same exporter, kept only for older configs. The connection string is read from
+  # APPLICATIONINSIGHTS_CONNECTION_STRING in the environment automatically and takes
+  # precedence over any connection_string set here, so none is set here — the value
+  # comes from Key Vault secret appinsights-connection-string, never from this file
+  # (see gateway/README.md for how it reaches the container).
+  azure_monitor: {}
+
+  # Local/Compose sink for the exit-path stack and for eyeballing spans in development;
+  # basic verbosity summarises each span/log record instead of dumping full attribute
+  # payloads to stdout.
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [azure_monitor, debug]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [azure_monitor, debug]

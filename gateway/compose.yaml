@@ -1,0 +1,54 @@
+# The exit-path proof (ADR-0005): the same three images that run as Container Apps in
+# the lab tier — litellm, its Postgres store and the OpenTelemetry collector sidecar —
+# run here, on any Docker host. This file is exercised, not just documented; see
+# gateway/README.md for how to run it. No secrets are declared here: values come from
+# gateway/.env (copy gateway/.env.example and fill it in; gateway/.env is gitignored).
+# A variable left unset in the shell or .env resolves to the empty default below, so
+# `docker compose config` renders cleanly even with no .env file present.
+
+services:
+  litellm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-}
+      DATABASE_URL: ${DATABASE_URL:-}
+      AZURE_API_BASE: ${AZURE_API_BASE:-}
+      AZURE_API_KEY: ${AZURE_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OLLAMA_API_BASE: ${OLLAMA_API_BASE:-}
+      JWT_PUBLIC_KEY_URL: ${JWT_PUBLIC_KEY_URL:-}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-}
+      # Reaches the otel-collector service below over the Compose network, mirroring
+      # the localhost sidecar address used on Container Apps (ADR-0005).
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}
+    depends_on:
+      - postgres
+      - otel-collector
+
+  postgres:
+    # Pinned to the major.minor line; Postgres publishes patch updates under the same
+    # tag, so this tracks security fixes without a config change.
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_DB: ${POSTGRES_DB:-}
+    volumes:
+      - litellm-postgres:/var/lib/postgresql/data
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.161.0
+    environment:
+      APPLICATIONINSIGHTS_CONNECTION_STRING: ${APPLICATIONINSIGHTS_CONNECTION_STRING:-}
+    volumes:
+      - ./otel/collector.yaml:/etc/otelcol-contrib/config.yaml:ro
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+
+volumes:
+  litellm-postgres:
