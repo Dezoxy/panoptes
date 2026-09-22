@@ -38,7 +38,7 @@ resource "random_uuid" "gateway_consumer_role" {}
 # checks the token's group claims against the Entra groups above to decide entitlement.
 resource "azuread_application" "gateway" {
   display_name     = "panoptes-gateway"
-  identifier_uris  = ["api://panoptes-gateway"]
+  identifier_uris  = ["api://${data.azuread_client_config.current.tenant_id}/panoptes-gateway"]
   sign_in_audience = "AzureADMyOrg"
 
   # Group membership shows up in the token as a claim, so the gateway can read
