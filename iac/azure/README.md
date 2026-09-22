@@ -49,6 +49,7 @@ Azure VNet.
 | `foundry-endpoint` | `foundry.tf`, from the Foundry account | Not read by the gateway directly — `container_apps.tf` passes the endpoint into `AZURE_API_BASE` from the resource attribute, not this secret |
 | `appinsights-connection-string` | `observability.tf`, from the Application Insights resource | The gateway's OpenTelemetry collector sidecar |
 | `litellm-master-key` | `container_apps.tf`, generated with `random_password` | LiteLLM, in the gateway Container App |
+| `admin-initial-password` | `operators.tf`, generated with `random_password` | The operator, once, setting up the work admin account — see "Operator identities" below |
 | `anthropic-api-key` | **The operator, by hand** — never Terraform | LiteLLM, in the gateway Container App |
 | `openai-api-key` | **The operator, by hand** — never Terraform | LiteLLM, in the gateway Container App |
 | `openrouter-api-key` | **The operator, by hand** — never Terraform | LiteLLM, in the gateway Container App |
@@ -74,6 +75,50 @@ With a user-assigned identity the roles are granted first and the app is created
 them (`depends_on`), so no restart step exists. Role propagation can still lag by a
 minute on a fresh assignment; a second `make apply` after that is the only remedy ever
 needed.
+
+## Operator identities
+
+Two operator accounts exist in this tenant (`operators.tf`):
+
+- **Break-glass** — the personal Microsoft account `azure@tomhorvath.me`. Billing
+  owner and Global Administrator. Not used for day-to-day administration; kept
+  signed out except when the work account is unavailable.
+- **Work admin** — `admin@azuretomhorvath.onmicrosoft.com` ("Panoptes Platform
+  Administrator"), Global Administrator and subscription Owner, used for daily
+  administration going forward. Its object id feeds `local.platform_operators`
+  alongside break-glass's, so both hold the same Key Vault and platform-group
+  grants — see the header comment in `operators.tf`.
+
+Both are standing (non-PIM) role assignments: PIM-eligible assignment is the
+production alternative (`operators.tf`'s comment on
+`azuread_directory_role_assignment.admin_global_administrator`), not available on
+this tenant's licence.
+
+First sign-in for the work admin account, after `make apply` has created it:
+
+1. Retrieve the initial password once:
+
+   ```sh
+   az keyvault secret show --vault-name kv-panoptes-lab-swc --name admin-initial-password --query value -o tsv
+   ```
+
+2. Sign in at <https://portal.azure.com> as `admin@azuretomhorvath.onmicrosoft.com`
+   with that password.
+3. Change the password when prompted (`force_password_change` is set on the user).
+4. Register MFA.
+5. Switch the CLI to the work account and confirm it lands on the right tenant:
+
+   ```sh
+   az logout
+   az login --tenant 00f1b6c6-e44f-42cd-95fd-d0fd61c67825
+   ```
+
+6. Disable the Key Vault secret version now that it has been read and the password
+   changed — it is not rotated, only retired:
+
+   ```sh
+   az keyvault secret set-attributes --vault-name kv-panoptes-lab-swc --name admin-initial-password --enabled false
+   ```
 
 ## No static credentials in the image path
 

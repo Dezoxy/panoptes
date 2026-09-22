@@ -41,3 +41,7 @@ surface may change without a major version bump.
 - Container Apps environment, PostgreSQL add-on, gateway app with OpenTelemetry
   sidecar, Key Vault references, always_on switch; Azure Container Registry with
   managed-identity pull and GitHub OIDC push.
+- Work admin account (`admin@azuretomhorvath.onmicrosoft.com`) for day-to-day tenant
+  administration, Global Administrator and subscription Owner, with the personal
+  account kept as break-glass; Key Vault and platform-group grants for both operators
+  addressed by object id rather than by the CLI's signed-in account.
