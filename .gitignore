@@ -21,6 +21,10 @@ htmlcov/
 *.tfstate.*
 *.tfvars
 *.tfvars.json
+# Backend file written by iac/azure/bootstrap/bootstrap.sh: subscription-specific identifiers.
+*.tfbackend
+# Saved plans are local artefacts.
+*.tfplan
 crash.log
 crash.*.log
 
