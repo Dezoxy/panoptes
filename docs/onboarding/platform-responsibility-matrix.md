@@ -59,6 +59,7 @@ data class, fallback, quotas, audit, version pinning and the provider-change pla
 | OpenAI via the gateway | Supported | Same routing, quota and audit path. |
 | Self-hosted Ollama via the gateway | Supported, and the Restricted route | Runs on the firm's own hardware, so Restricted data never leaves it. |
 | Mistral or Llama as Foundry deployments | Supported | Supported because of where they run, not because of who trained them. |
+| OpenRouter via the gateway | Tolerated for Internal data only | A broker: it forwards the request to a third-party model host of its own choosing. Confidential and above need a vendor record naming that host first. |
 | Google Gemini | Forbidden | No vendor record and no gateway route. Lift it when both exist. |
 | A provider API key held by the application | Forbidden | Bypasses the single control point: no entitlement check, no quota, no attribution, no audit record. Every model call goes through the gateway — see [`../../adr/0003-model-gateway-litellm.md`](../../adr/0003-model-gateway-litellm.md). |
 

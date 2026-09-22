@@ -1,0 +1,234 @@
+# panoptes-gateway: LiteLLM proxy configuration, as code (ADR-0003).
+#
+# No secrets are declared here. Every credential is an `os.environ/<NAME>` reference,
+# resolved by LiteLLM at container start from environment variables the platform sets
+# from Azure Key Vault (see gateway/README.md for the secret names and delivery path).
+#
+# Schema, JWT auth fields and fallback syntax verified against docs.litellm.ai on
+# 2026-09-22 (proxy config reference, JWT auth reference, reliability/fallbacks
+# reference, OpenTelemetry integration reference). See gateway/README.md for the doc
+# URLs cited against each block below.
+#
+# model_info carries the four fields the platform's classification and lifecycle rules
+# need on every route (docs/method/risk-tiering.md, docs/onboarding/
+# platform-responsibility-matrix.md):
+#   provider        — who serves the model, for the route table and vendor tracking.
+#   data_class_max  — the highest data class (Public/Internal/Confidential/Restricted)
+#                      this route may carry, per the classification-to-provider matrix
+#                      the risk-tiering doc points at (policies/, not yet written; the
+#                      tier 3 provider rule in risk-tiering.md is the working rule until
+#                      it lands).
+#   tier_max        — the highest risk tier (1/2/3) a workload scored at this tier may
+#                      route through this model, from docs/method/risk-tiering.md.
+#   residency       — where the data actually goes: eu-sweden-central (Foundry, own
+#                      tenancy, Sweden Central per ADR-0005), eu-data-zone (unused here;
+#                      reserved for an EU-data-zone vendor commitment), vendor-us (a
+#                      US-headquartered vendor's own infrastructure), broker (forwarded
+#                      by an intermediary to a third party it chooses), or own-tenancy
+#                      (self-hosted, never leaves the firm's infrastructure).
+
+model_list:
+  # --- azure-gpt-4o ---
+  # Foundry deployment in the firm's own Azure tenant (ADR-0005: endpoint
+  # ais-panoptes-lab-swc, deployment gpt-4o 2024-11-20, Sweden Central). Own-tenancy
+  # hosting is what lets this route carry Restricted data under the tier 3 provider rule
+  # in docs/method/risk-tiering.md.
+  - model_name: azure-gpt-4o
+    litellm_params:
+      model: azure/gpt-4o
+      api_base: os.environ/AZURE_API_BASE
+      api_key: os.environ/AZURE_API_KEY
+      # Azure OpenAI GA dated api-version, pinned deliberately (ADR-0003: an upgrade is
+      # a change with a rollback plan, not a moving target). Verified as the current GA
+      # release on learn.microsoft.com on 2026-09-22.
+      api_version: "2024-10-21"
+    model_info:
+      provider: azure-foundry
+      data_class_max: Restricted
+      tier_max: 3
+      residency: eu-sweden-central
+      notes: >-
+        Primary deployment for both the chat-default and chat-restricted model groups
+        below.
+
+  # --- anthropic-claude-sonnet ---
+  # Responsibility matrix layer 3: "Anthropic Claude via the gateway — Supported".
+  # data_class_max is capped at Confidential, not Restricted, because no vendor record
+  # for Anthropic exists yet in docs/vendors/ (that directory is Phase-3 scope); revisit
+  # this cap once the record is written and residency/retention terms are on file.
+  - model_name: anthropic-claude-sonnet
+    litellm_params:
+      model: claude-sonnet-5 # Current Sonnet id; verified on platform.claude.com/docs on 2026-09-22.
+      api_key: os.environ/ANTHROPIC_API_KEY
+    model_info:
+      provider: anthropic
+      data_class_max: Confidential # Vendor record pending — see docs/vendors/ (not yet written).
+      tier_max: 2
+      residency: vendor-us
+      notes: "Vendor-hosted in the US. Confidential class is provisional pending the vendor record."
+
+  # --- openai-gpt-small ---
+  # Same vendor-record gap as Anthropic above, so the same Confidential cap applies.
+  - model_name: openai-gpt-small
+    litellm_params:
+      model: openai/gpt-5.6-luna # Current cost-sensitive flagship id; verified on developers.openai.com on 2026-09-22.
+      api_key: os.environ/OPENAI_API_KEY
+    model_info:
+      provider: openai
+      data_class_max: Confidential # Vendor record pending — see docs/vendors/ (not yet written).
+      tier_max: 2
+      residency: vendor-us
+      notes: "Vendor-hosted in the US. Confidential class is provisional pending the vendor record."
+
+  # --- openrouter-mistral ---
+  # Responsibility matrix has no OpenRouter row yet; this change adds one (layer 3,
+  # Tolerated for Internal only) in docs/onboarding/platform-responsibility-matrix.md.
+  - model_name: openrouter-mistral
+    litellm_params:
+      model: openrouter/mistralai/mistral-small-3.2-24b-instruct # Verified on openrouter.ai/mistralai on 2026-09-22.
+      api_key: os.environ/OPENROUTER_API_KEY
+    model_info:
+      provider: openrouter
+      data_class_max: Internal
+      tier_max: 1
+      residency: broker
+      notes: >-
+        OpenRouter is a broker: it forwards the request to a third-party model host of
+        its own choosing, not a fixed, named vendor. Internal data only until that host
+        is named in a vendor record.
+
+  # --- ollama-llama3.2 ---
+  # Self-hosted Container App (ADR-0005 step 4), CPU only, model baked into the image.
+  # Responsibility matrix: "Self-hosted Ollama via the gateway — Supported, and the
+  # Restricted route".
+  - model_name: ollama-llama3.2
+    litellm_params:
+      model: ollama/llama3.2:3b
+      api_base: os.environ/OLLAMA_API_BASE
+    model_info:
+      provider: ollama
+      data_class_max: Restricted
+      tier_max: 3
+      residency: own-tenancy
+      notes: "Runs on the firm's own Container Apps environment; Restricted data never leaves it."
+
+  # --- chat-default ---
+  # Model group alias (docs.litellm.ai/docs/proxy/configs): reuses the azure-gpt-4o
+  # deployment under a second model_name so a caller can route to "chat-default"
+  # without naming a provider, and get the OpenAI-then-Anthropic fallback chain in
+  # router_settings.fallbacks below. model_info mirrors azure-gpt-4o's, since this
+  # entry *is* that deployment under the group alias.
+  - model_name: chat-default
+    litellm_params:
+      model: azure/gpt-4o
+      api_base: os.environ/AZURE_API_BASE
+      api_key: os.environ/AZURE_API_KEY
+      api_version: "2024-10-21"
+    model_info:
+      provider: azure-foundry
+      data_class_max: Restricted
+      tier_max: 3
+      residency: eu-sweden-central
+      notes: "Group entry point for chat-default; falls back to openai-gpt-small then anthropic-claude-sonnet."
+
+  # --- chat-restricted ---
+  # Same pattern as chat-default, for the Restricted-only group: azure-gpt-4o, falling
+  # back to the self-hosted Ollama route only. Never falls back to a vendor outside the
+  # firm's tenancy — see router_settings.fallbacks and gateway/tests/test_config.py,
+  # which enforces that this group's residency stays in {eu-sweden-central, own-tenancy}.
+  - model_name: chat-restricted
+    litellm_params:
+      model: azure/gpt-4o
+      api_base: os.environ/AZURE_API_BASE
+      api_key: os.environ/AZURE_API_KEY
+      api_version: "2024-10-21"
+    model_info:
+      provider: azure-foundry
+      data_class_max: Restricted
+      tier_max: 3
+      residency: eu-sweden-central
+      notes: "Group entry point for chat-restricted; falls back to ollama-llama3.2 only."
+
+litellm_settings:
+  # ADR-0003: default audit logging is metadata only. Prompt and completion bodies are
+  # never written to platform storage unless a tier 2+ workload has opted in with a DPIA
+  # reference recorded against it (docs/method/risk-tiering.md) — that opt-in is a
+  # per-workload override, not a config change here.
+  turn_off_message_logging: true
+
+  # Emits routing/latency/cost spans to the OTel collector sidecar over
+  # OTEL_EXPORTER_OTLP_ENDPOINT (ADR-0005). docs.litellm.ai/docs/observability/opentelemetry_integration.
+  callbacks: ["otel"]
+
+  # Providers accept different parameter sets; drop an unsupported one rather than fail
+  # the call with a 400.
+  drop_params: true
+
+  num_retries: 2
+  request_timeout: 60 # seconds
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+
+  # Config as code (ADR-0003): a routing, quota or fallback change is a pull request
+  # against this file, reviewed under CODEOWNERS — not an edit made at runtime through
+  # the Admin UI or API against the database.
+  store_model_in_db: false
+
+  # No alerting sink is wired up yet; the lab tier's budget alerts live in the Azure
+  # control plane (ADR-0005), not here.
+  alerting: []
+
+  # Entra ID JWT auth (docs.litellm.ai/docs/proxy/token_auth). Applications authenticate
+  # with a bearer token from the gateway app registration (tenant
+  # 00f1b6c6-e44f-42cd-95fd-d0fd61c67825, client id 33dd8a55-b97f-4111-88cc-e7b370d51beb,
+  # audience api://00f1b6c6-e44f-42cd-95fd-d0fd61c67825/panoptes-gateway); scripts use
+  # platform-issued virtual keys instead (see gateway/README.md).
+  enable_jwt_auth: true
+
+  litellm_jwtauth:
+    # Entra ID emits a `groups` claim listing the object ids of the groups a principal
+    # belongs to. Mapped straight to LiteLLM team ids: sg-panoptes-research,
+    # sg-panoptes-client-reporting and sg-panoptes-platform are registered as teams by
+    # object id (never hardcoded here — see gateway/README.md), so team membership is
+    # exactly Entra group membership.
+    team_ids_jwt_field: "groups"
+
+    # `oid` is Entra ID's immutable per-user object id claim — stable across email or
+    # UPN changes, unlike `sub` in some configurations.
+    user_id_jwt_field: "oid"
+
+    # A token must carry this scope to be treated as proxy admin, independent of team
+    # membership.
+    admin_jwt_scope: "litellm_proxy_admin"
+
+    # Route allow-list for admin-scoped tokens, narrower than "every route": spend
+    # visibility and key/team lifecycle, not arbitrary proxy administration from a
+    # bearer token alone.
+    admin_allowed_routes:
+      - "/global/spend/logs"
+      - "/key/generate"
+      - "/team/new"
+
+    # How long a fetched Entra JWKS key is cached before the proxy re-fetches it.
+    public_key_ttl: 600
+
+router_settings:
+  # LiteLLM's documented default Router strategy: spread requests across a group's
+  # deployments rather than always hitting the first one.
+  routing_strategy: simple-shuffle
+
+  # Cooldown a deployment after 2 consecutive failures, not on the first flaky call.
+  allowed_fails: 2
+
+  # Seconds a deployment stays in cooldown (skipped by the router) after tripping
+  # allowed_fails.
+  cooldown_time: 30
+
+  # Fallback chains live under router_settings per the current proxy reliability
+  # reference (docs.litellm.ai/docs/proxy/reliability), not litellm_settings. Each entry
+  # maps a model_name to the ordered list of model_names tried after it fails.
+  fallbacks:
+    - chat-default: ["openai-gpt-small", "anthropic-claude-sonnet"]
+    - chat-restricted: ["ollama-llama3.2"]

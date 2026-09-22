@@ -1,0 +1,102 @@
+---
+name: gateway-image
+
+# Builds panoptes-gateway on every change under gateway/ (ADR-0003: the gateway config
+# is reviewed as code, and this is the gate that proves the image still builds from it).
+# Pull requests build only, to catch a broken Dockerfile or config before merge; a push
+# to main also pushes to Azure Container Registry, since that is the only place the
+# image is published from. Authentication is GitHub OIDC (workload identity
+# federation) against an Entra app registration provisioned in iac/azure — no static
+# registry credential exists in this path.
+
+on:
+  pull_request:
+    paths:
+      - "gateway/**"
+      - ".github/workflows/gateway-image.yml"
+  push:
+    branches: [main]
+    paths:
+      - "gateway/**"
+      - ".github/workflows/gateway-image.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  ACR_NAME: crpanopteslabswc
+  IMAGE_NAME: crpanopteslabswc.azurecr.io/panoptes-gateway
+
+jobs:
+  compose-config:
+    name: compose-config
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+
+      # Renders cleanly with no .env present (every variable defaults to empty in
+      # gateway/compose.yaml), so this needs no secrets to run on every pull request.
+      - name: Validate the exit-path Compose file
+        run: docker compose -f gateway/compose.yaml config
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      # OIDC token for azure/login; no packages: write, since nothing is pushed to a
+      # GitHub-hosted registry.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Resolve tags
+        id: tags
+        run: |
+          short_sha="$(git rev-parse --short HEAD)"
+          echo "short_sha=${short_sha}" >> "${GITHUB_OUTPUT}"
+
+      # Pull requests build only, to prove the Dockerfile still works, without logging
+      # in to Azure or publishing anything.
+      - name: Build (pull request)
+        if: github.event_name == 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: gateway
+          push: false
+          tags: ${{ env.IMAGE_NAME }}:pr-${{ steps.tags.outputs.short_sha }}
+
+      # OIDC federated login: client-id, tenant-id and subscription-id identify the
+      # federated credential, not a secret, so they are repository variables, not
+      # repository secrets. No client secret or password is ever issued.
+      - name: Azure login (OIDC)
+        if: github.event_name == 'push'
+        uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Log in to ACR
+        if: github.event_name == 'push'
+        run: az acr login --name "${{ env.ACR_NAME }}"
+
+      - name: Build and push (main)
+        if: github.event_name == 'push'
+        uses: docker/build-push-action@v6
+        with:
+          context: gateway
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:sha-${{ steps.tags.outputs.short_sha }}
+            ${{ env.IMAGE_NAME }}:main
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
