@@ -35,6 +35,9 @@ surface may change without a major version bump.
 - Gateway config as code: five routes with data-class and residency metadata, two
   fallback groups, JWT and virtual-key auth, metadata-only logging; image build
   workflow pushing to ACR through OIDC; Compose exit-path stack; config tests.
+- Gateway live in the lab (2026-09-22): first chat completions through `chat-default`,
+  `azure-gpt-4o`, `chat-restricted` and `openrouter-mistral`; bad key rejected with 401;
+  audit spans in Application Insights with no prompt or completion text.
 - Container Apps environment, PostgreSQL add-on, gateway app with OpenTelemetry
   sidecar, Key Vault references, always_on switch; Azure Container Registry with
   managed-identity pull and GitHub OIDC push.

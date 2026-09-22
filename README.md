@@ -41,17 +41,17 @@ model is in `docs/architecture/` and placement decisions in `adr/`.
 
 ## Service catalogue
 
-Nothing in this table runs yet. Every row is at its starting state; the table is the plan
-of record, not a description of a running system.
+Rows marked Running are deployed in the lab subscription and verified from outside the
+platform on the date in the changelog; everything else is the plan of record.
 
 | Service | Component | Build status | Lifecycle stage | Owner |
 | --- | --- | --- | --- | --- |
-| Model gateway | `panoptes-gateway` | Planned | Discovery | AI Platform |
+| Model gateway | `panoptes-gateway` | Running | Pilot | AI Platform |
 | Telemetry and cost | `panoptes-meter` | Planned | Discovery | AI Platform |
 | Policy engine and evidence | `panoptes-policies` | Planned | Discovery | AI Platform / Security |
 | Platform CLI | `panoptes` (`onboard`, `budget`, `evidence`, `copilot`) | Planned | Discovery | AI Platform |
-| Provider integrations | Azure AI Foundry, Anthropic, OpenAI, self-hosted | Planned | Discovery | AI Platform |
-| Observability | dashboards and alerting | Planned | Discovery | AI Platform |
+| Provider integrations | Azure AI Foundry, Anthropic, OpenAI, OpenRouter, self-hosted | Running (Foundry, OpenRouter); Documented (Anthropic, OpenAI keyed, not yet verified; self-hosted) | Pilot | AI Platform |
+| Observability | dashboards and alerting | Running (audit spans in Application Insights); Planned (dashboards) | Pilot | AI Platform |
 | Onboarding lifecycle | templates and review gates | Planned | Discovery | AI Platform |
 | Copilot estate | M365 Copilot, GitHub Copilot, Copilot Studio administration | Planned | Discovery | AI Platform |
 | Vendor management | due diligence, renewals, exit plans | Planned | Discovery | AI Platform / FinOps |
