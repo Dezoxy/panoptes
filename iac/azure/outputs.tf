@@ -76,7 +76,7 @@ output "gateway_fqdn" {
 
 output "gateway_principal_id" {
   description = "Object id of the gateway Container App's system-assigned managed identity, e.g. for granting it access to a resource this module does not manage."
-  value       = azapi_resource.gateway.identity[0].principal_id
+  value       = azurerm_user_assigned_identity.gateway.principal_id
 }
 
 output "container_registry_login_server" {

@@ -29,7 +29,7 @@ primary, West Europe as the documented failover, on Azure Container Apps.
 - The Container Apps environment, Consumption-only, bound to the Log Analytics
   workspace; the Container Apps PostgreSQL add-on (development tier, ADR-0005 — not
   for production data); and the `panoptes-gateway` Container App, with a
-  system-assigned identity, an OpenTelemetry collector sidecar, and Key Vault
+  user-assigned identity, an OpenTelemetry collector sidecar, and Key Vault
   references for its secrets (`container_apps.tf`).
 - The gateway's own Container Registry, Basic SKU, admin account disabled
   (`container_apps.tf`); the `github-actions-panoptes` app registration and its two
@@ -63,24 +63,17 @@ az keyvault secret set --vault-name kv-panoptes-lab-swc --name openai-api-key --
 az keyvault secret set --vault-name kv-panoptes-lab-swc --name openrouter-api-key --value "<paste>"
 ```
 
-### First-revision secret resolution
+### Gateway identity and role ordering
 
-The gateway Container App's Key Vault references resolve at revision activation,
-using the app's own system-assigned identity — but that identity is only granted
-`Key Vault Secrets User` on the vault in the same apply that creates the app (the role
-assignment cannot exist before the identity it targets does). The app's first revision
-can therefore come up with its secrets unresolved. If that happens, restart it once the
-role assignment has had a minute to propagate:
-
-```sh
-az containerapp revision restart \
-  --name ca-panoptes-gateway-lab-swc \
-  --resource-group rg-panoptes-lab-swc
-```
-
-The same caveat applies to `azurerm_role_assignment.gateway_acr_pull`: the gateway's
-identity cannot pull the image until that role has propagated either, so a first
-deploy can need the same restart for the same reason.
+The gateway Container App runs with a **user-assigned managed identity**
+(`id-panoptes-gateway-lab-swc`) rather than a system-assigned one. A system-assigned
+identity only exists once the app does, so its `AcrPull` and `Key Vault Secrets User`
+roles could only be granted after creation; the first revision could neither pull the
+image nor resolve its Key Vault references, and provisioning hung until it timed out.
+With a user-assigned identity the roles are granted first and the app is created after
+them (`depends_on`), so no restart step exists. Role propagation can still lag by a
+minute on a fresh assignment; a second `make apply` after that is the only remedy ever
+needed.
 
 ## No static credentials in the image path
 
@@ -88,7 +81,7 @@ The gateway image is not public, and the registry has no admin password (owner
 decision — supersedes an earlier plan to pull a public `ghcr.io` image). Nothing in
 the image's build-to-run path is a stored secret:
 
-- **Pull** — the gateway Container App's own system-assigned identity has `AcrPull` on
+- **Pull** — the gateway's user-assigned identity has `AcrPull` on
   `crpanopteslabswc` (`azurerm_role_assignment.gateway_acr_pull`), referenced in the
   app's `registries` block by identity, not by username and password.
 - **Push** — GitHub Actions authenticates to Azure with
