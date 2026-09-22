@@ -71,7 +71,7 @@ model_list:
   # Same vendor-record gap as Anthropic above, so the same Confidential cap applies.
   - model_name: openai-gpt-small
     litellm_params:
-      model: openai/gpt-5.6-luna # Current cost-sensitive flagship id; verified on developers.openai.com on 2026-09-22.
+      model: openai/gpt-5-mini # Verified against the project's /v1/models on 2026-09-22 (the earlier id was not 2026-09-22.
       api_key: os.environ/OPENAI_API_KEY
     model_info:
       provider: openai
