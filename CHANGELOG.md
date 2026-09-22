@@ -25,3 +25,5 @@ surface may change without a major version bump.
 - Directory skeleton with per-directory scope, owning function and delivery phase.
 - `panoptes_platform` package and `panoptes` CLI skeleton (uv, typer, mypy strict).
 - Agent instructions, engineering rules and architecture authoring skills.
+- Platform responsibility matrix: per-layer ownership and Supported / Tolerated /
+  Forbidden tool statuses; golden-path workload template added to the Phase 3 scope.
