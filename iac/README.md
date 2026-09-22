@@ -12,8 +12,10 @@ subscription and resource group layout, networking, identity and role assignment
 Vault, the hosted model deployments, and the cluster add-ons the platform depends on.
 
 Phase 1 has started: the Azure root module in [`azure/`](azure/README.md) manages the
-lab resource group, the subscription budget and the tag policy assignment; Key Vault,
-the Container Apps environment and the gateway workload follow. The on-prem Kubernetes
+lab resource group, the subscription budget, the tag policy assignment, Key Vault, the
+Azure AI Foundry account and its model deployments, Log Analytics, Application
+Insights, the Azure Monitor workspace and the Entra groups and app registration; the
+Container Apps environment and the gateway workload follow. The on-prem Kubernetes
 manifests referenced above stay **Documented**, per
 [ADR-0005](../adr/0005-lab-tier-on-azure.md) — the lab tier runs on Azure Container
 Apps, and the on-prem cluster is the exit environment these manifests describe rather

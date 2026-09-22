@@ -29,3 +29,6 @@ surface may change without a major version bump.
 - Agent instructions, engineering rules and architecture authoring skills.
 - Platform responsibility matrix: per-layer ownership and Supported / Tolerated /
   Forbidden tool statuses; golden-path workload template added to the Phase 3 scope.
+- Azure control plane: Key Vault, Foundry account with two pinned deployments, Entra
+  groups and gateway app registration, Log Analytics, Application Insights, Azure
+  Monitor workspace.
