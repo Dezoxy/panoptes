@@ -45,10 +45,7 @@ resource "azurerm_key_vault" "lab" {
   tags = var.tags
 }
 
-# Lets the signed-in operator (and, later, workloads granted the same role) manage
-# secret values without falling back to the legacy access-policy model.
-resource "azurerm_role_assignment" "kv_secrets_officer" {
-  scope                = azurerm_key_vault.lab.id
-  role_definition_name = "Key Vault Secrets Officer"
-  principal_id         = data.azurerm_client_config.current.object_id
-}
+# Key Vault Secrets Officer for the platform team's operators (break-glass and the
+# work admin account) is in operators.tf, keyed by local.platform_operators rather
+# than by whoever happens to be signed in to the CLI at plan time — see that file's
+# header comment for why.

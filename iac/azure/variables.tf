@@ -81,3 +81,13 @@ variable "otel_collector_image" {
   type        = string
   default     = "otel/opentelemetry-collector-contrib:0.161.0"
 }
+
+variable "break_glass_object_id" {
+  description = "Entra object id of the personal Microsoft account kept as break-glass (billing owner, Global Administrator, not used day to day) — see operators.tf. Retrieve while signed in as that account with `az ad signed-in-user show --query id -o tsv` and set it in lab.auto.tfvars (gitignored); it cannot default to data.azurerm_client_config.current.object_id because that value tracks whichever account is signed in to the CLI at plan time, which is exactly the drift this variable exists to stop."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", var.break_glass_object_id))
+    error_message = "break_glass_object_id must be a GUID, e.g. 00000000-0000-0000-0000-000000000000."
+  }
+}

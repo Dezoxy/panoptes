@@ -23,11 +23,10 @@ resource "azuread_group" "platform" {
   description      = "Northgate AI Platform team administering the Panoptes control plane."
 }
 
-# The signed-in operator is the platform team, for now.
-resource "azuread_group_member" "platform_current_user" {
-  group_object_id  = azuread_group.platform.object_id
-  member_object_id = data.azuread_client_config.current.object_id
-}
+# Membership for the platform team's operators (break-glass and the work admin
+# account) is in operators.tf, keyed by local.platform_operators rather than by
+# whoever happens to be signed in to the CLI at plan time — see that file's header
+# comment for why.
 
 # The app-role id must be a stable UUID, not regenerated on every plan; random_uuid
 # only computes a new value if this resource is replaced.
