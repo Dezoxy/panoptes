@@ -1,8 +1,8 @@
 # Runbooks
 
 - **Owner** — Service Management
-- **Status** — Planned
-- **Last reviewed** — 2026-09-21
+- **Status** — Draft
+- **Last reviewed** — 2026-09-22
 - **Out of scope** — service level objectives and error budgets (`slos/`); architecture and
   design rationale (`docs/architecture/`, `adr/`); and consumer workload operations, which
   their owners run.
@@ -17,3 +17,7 @@ context to follow, it is a design document with the wrong filename.
 
 Accumulates from **Phase 1**. The rule is simple: an alert without a runbook does not get
 to page.
+
+## Runbooks
+
+- [Rotating a gateway secret](gateway-secret-rotation.md) — a new revision, not a restart.
