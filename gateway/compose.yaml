@@ -34,7 +34,7 @@ services:
   postgres:
     # Pinned to the major.minor line; Postgres publishes patch updates under the same
     # tag, so this tracks security fixes without a config change.
-    image: postgres:16
+    image: postgres:18
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
