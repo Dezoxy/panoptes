@@ -6,7 +6,7 @@
 # stable release, verified present via `docker manifest inspect
 # ghcr.io/berriai/litellm:v1.102.0` on 2026-09-22 (amd64 and arm64 both published).
 # Bump this tag as its own pull request.
-FROM ghcr.io/berriai/litellm:v1.102.0
+FROM ghcr.io/berriai/litellm:v1.102.1
 
 WORKDIR /app
 
