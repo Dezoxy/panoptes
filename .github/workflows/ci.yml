@@ -49,6 +49,8 @@ jobs:
         env:
           # The branch guard is a local commit gate; on a push to main CI is on main by design.
           SKIP: no-commit-to-branch
+          # tflint --init fetches the azurerm ruleset from GitHub; anonymous calls hit the 60/hour IP limit.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pre-commit run --all-files --show-diff-on-failure
 
   python:
